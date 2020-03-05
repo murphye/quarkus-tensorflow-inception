@@ -99,6 +99,7 @@
           <systemProperties>
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
           </systemProperties>
+          <argLine>-Djava.awt.headless=true</argLine><!-- Prevents ForkedBooter from stealing window focus on Mac OS -->
         </configuration>
       </plugin>
     </plugins>
@@ -126,6 +127,7 @@
                   <systemProperties>
                     <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
                   </systemProperties>
+                  <argLine>-Djava.awt.headless=true</argLine><!-- Prevents ForkedBooter from stealing window focus on Mac OS -->
                 </configuration>
               </execution>
             </executions>
