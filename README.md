@@ -8,7 +8,7 @@ objects in photos by returning labels, bounding boxes, and confidence scores.
 
 You can run your application in dev mode that enables live coding using:
 ```
-./mvnw quarkus:dev
+mvn quarkus:dev
 ```
 
 ## Packaging and running the application
