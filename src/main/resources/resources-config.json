@@ -1,0 +1,16 @@
+{
+    "resources": [
+        {
+            "pattern": ".*\\.pbtxt$"
+        },
+        {
+            "pattern": ".*\\.jpg$"
+        },
+        {
+            "pattern": ".*\\.dylib$"
+        },
+        {
+            "pattern": ".*\\.so$"
+        }
+    ]
+}
