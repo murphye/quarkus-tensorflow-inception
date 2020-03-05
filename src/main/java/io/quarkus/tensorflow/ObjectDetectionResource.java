@@ -24,7 +24,7 @@ public class ObjectDetectionResource {
     @GET
     @Path("/detect")
     @Produces(MediaType.TEXT_PLAIN)
-    public String detect(@QueryParam("image") String imageURL) {
+    public String detectFromURL(@QueryParam("image") String imageURL) {
         String result;
 
         try {
