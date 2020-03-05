@@ -39,41 +39,32 @@ public class ObjectDetectionService {
     public String detect(byte[] rawData) throws ImageReadException, IOException, URISyntaxException {
         List<Tensor<?>> outputs = null;
 
-        try (Tensor<UInt8> input = makeImageTensor(rawData)) {
-            outputs = this.model.session().runner().feed("image_tensor", input).fetch("detection_scores")
-                    .fetch("detection_classes").fetch("detection_boxes").run();
-        }
-        try (Tensor<Float> scoresT = outputs.get(0).expect(Float.class);
-             Tensor<Float> classesT = outputs.get(1).expect(Float.class);
-             Tensor<Float> boxesT = outputs.get(2).expect(Float.class)) {
+        Tensor<UInt8> input = makeImageTensor(rawData);
+        outputs = this.model.session().runner().feed("image_tensor", input).fetch("detection_scores")
+                .fetch("detection_classes").fetch("detection_boxes").run();
+        Tensor<Float> scoresT = outputs.get(0).expect(Float.class);
+        Tensor<Float> classesT = outputs.get(1).expect(Float.class);
+        Tensor<Float> boxesT = outputs.get(2).expect(Float.class);
 
-            // All these tensors have: 1 as the first dimension, maxObjects as the second dimension
-            // boxes will have 4 as the third dimension (2 sets of (x, y) coordinates).
-            int maxObjects = (int) scoresT.shape()[1];
-            float[] scores = scoresT.copyTo(new float[1][maxObjects])[0];
-            float[] classes = classesT.copyTo(new float[1][maxObjects])[0];
-            float[][] boxes = boxesT.copyTo(new float[1][maxObjects][4])[0];
+        // All these tensors have: 1 as the first dimension, maxObjects as the second dimension
+        // boxes will have 4 as the third dimension (2 sets of (x, y) coordinates).
+        int maxObjects = (int) scoresT.shape()[1];
+        float[] scores = scoresT.copyTo(new float[1][maxObjects])[0];
+        float[] classes = classesT.copyTo(new float[1][maxObjects])[0];
+        float[][] boxes = boxesT.copyTo(new float[1][maxObjects][4])[0];
 
-            // Print all objects whose score is at least 0.5.
-            boolean foundSomething = false;
-            for (int i = 0; i < scores.length; ++i) {
-                if (scores[i] < 0.5) {
-                    continue;
-                }
-                foundSomething = true;
-                return String.format("\tFound %-20s (score: %.4f) boxes: " + boxes, labels[(int) classes[i]],
-                        scores[i]);
+        // Print all objects whose score is at least 0.5.
+        for (int i = 0; i < scores.length; ++i) {
+            if (scores[i] < 0.5) {
+                continue;
             }
-            if (!foundSomething) {
-                return "No objects detected with a high enough score.";
-            }
+            return String.format("\tFound %-20s (score: %.4f)", labels[(int) classes[i]], scores[i]);
         }
-        return null;
+        return "No objects detected with a high enough score.";
     }
 
     private static String[] loadLabels() throws TextFormat.ParseException {
         String text = ObjectDetectionUtil.convertStreamToString(ClassLoader.getSystemResourceAsStream(LABEL_RESOURCE_PATH));
-
         StringIntLabelMapOuterClass.StringIntLabelMap.Builder builder = StringIntLabelMapOuterClass.StringIntLabelMap.newBuilder();
         TextFormat.merge(text, builder);
         StringIntLabelMapOuterClass.StringIntLabelMap proto = builder.build();
