@@ -1,9 +1,9 @@
-package org.acme;
+package io.quarkus.tensorflow;
 
 import io.quarkus.test.junit.NativeImageTest;
 
 @NativeImageTest
-public class NativeExampleResourceIT extends ExampleResourceTest {
+public class NativeObjectDetectionResourceIT extends ObjectDetectionResourceTest {
 
     // Execute the same tests but in native mode.
 }

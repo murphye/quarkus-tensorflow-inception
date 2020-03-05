@@ -1,29 +1,9 @@
-package org.acme;
-
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.ByteBuffer;
-import java.util.List;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
+package io.quarkus.tensorflow;
 
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.TextFormat.ParseException;
-
+import object_detection.protos.StringIntLabelMapOuterClass.StringIntLabelMap;
+import object_detection.protos.StringIntLabelMapOuterClass.StringIntLabelMapItem;
 import org.apache.commons.imaging.ImageInfo;
 import org.apache.commons.imaging.ImageReadException;
 import org.apache.commons.imaging.Imaging;
@@ -31,17 +11,28 @@ import org.tensorflow.SavedModelBundle;
 import org.tensorflow.Tensor;
 import org.tensorflow.types.UInt8;
 
-import object_detection.protos.StringIntLabelMapOuterClass.StringIntLabelMap;
-import object_detection.protos.StringIntLabelMapOuterClass.StringIntLabelMapItem;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.ByteBuffer;
+import java.util.List;
 
-@Path("/hello")
-public class ExampleResource {
+@Path("/detect")
+public class ObjectDetectionResource {
 
     SavedModelBundle model;
 
     String[] labels;
 
-    public ExampleResource() throws ParseException {
+    public ObjectDetectionResource() throws ParseException {
         this.model = SavedModelBundle
                 .load(System.getProperty("user.dir") + "/models/ssd_inception_v2_coco_2017_11_17/saved_model", "serve");
 
@@ -154,12 +145,11 @@ public class ExampleResource {
         return byteArray;
     }
 
-    public static byte[] downloadFile(URL url) throws IOException
-    {
+    public static byte[] downloadFile(URL url) throws IOException {
         URLConnection conn = url.openConnection();
         conn.setConnectTimeout(5000);
         conn.setReadTimeout(5000);
-        conn.connect(); 
+        conn.connect();
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
@@ -167,26 +157,21 @@ public class ExampleResource {
             byte[] chunk = new byte[4096];
             int bytesRead;
             InputStream stream = conn.getInputStream();
-    
+
             while ((bytesRead = stream.read(chunk)) > 0) {
                 outputStream.write(chunk, 0, bytesRead);
             }
-    
+
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
-    
+
         return outputStream.toByteArray();
     }
 
-    private static Tensor<UInt8> makeImageTensor(URL url)
-            throws IOException, URISyntaxException, ImageReadException {
-        //byte[] rawData = getBytes(filename);
-
-
-        byte[] rawData =  downloadFile(url);
-
+    private static Tensor<UInt8> makeImageTensor(URL url) throws IOException, URISyntaxException, ImageReadException {
+        byte[] rawData = downloadFile(url);
 
         ImageInfo imageInfo = Imaging.getImageInfo(rawData);
         BufferedImage img = Imaging.getBufferedImage(rawData);
@@ -194,7 +179,7 @@ public class ExampleResource {
 
         final long BATCH_SIZE = 1;
         final long CHANNELS = 3;
-        long[] shape = new long[] { BATCH_SIZE, imageInfo.getHeight(), imageInfo.getWidth(), CHANNELS };
+        long[] shape = new long[]{BATCH_SIZE, imageInfo.getHeight(), imageInfo.getWidth(), CHANNELS};
         return Tensor.create(UInt8.class, shape, ByteBuffer.wrap(convertRGBstoBytes(imgData)));
     }
 
@@ -219,7 +204,7 @@ public class ExampleResource {
         byte r = (byte) (rgb & 0xff);
         byte g = (byte) ((rgb & 0xff00) >> 8);
         byte b = (byte) ((rgb & 0xff0000) >> 16);
-        return new byte[] { r, g, b };
+        return new byte[]{r, g, b};
     }
 
 }
