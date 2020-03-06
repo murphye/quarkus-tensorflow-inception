@@ -1,6 +1,5 @@
 package io.quarkus.tensorflow;
 
-import com.google.protobuf.TextFormat;
 import org.apache.commons.imaging.ImageReadException;
 
 import javax.inject.Inject;
