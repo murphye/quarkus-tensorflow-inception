@@ -1,5 +1,6 @@
 package io.quarkus.tensorflow;
 
+import com.google.protobuf.TextFormat;
 import org.apache.commons.imaging.ImageReadException;
 
 import javax.inject.Inject;
@@ -18,8 +19,14 @@ import java.util.List;
 @Path("/object")
 public class ObjectDetectionResource {
 
-    @Inject
-    ObjectDetectionService objectDetectionService;
+    private ObjectDetectionService objectDetectionService;
+
+    public ObjectDetectionResource() throws TextFormat.ParseException {
+        // TODO: Injecting the service results in
+        // Error: Classes that should be initialized at run time got initialized during image building:
+        // org.tensorflow.SavedModelBundle the class was requested to be initialized at build time
+        this.objectDetectionService = new ObjectDetectionService();
+    }
 
     @GET
     @Path("/detect")

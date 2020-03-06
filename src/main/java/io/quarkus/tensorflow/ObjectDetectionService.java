@@ -21,14 +21,14 @@ import java.util.List;
 public class ObjectDetectionService {
 
     private static final String LABEL_RESOURCE_PATH = "labels/mscoco_label_map.pbtxt";
-    private static final String MODEL_FILE_PATH = System.getProperty("user.dir") + "/models/ssd_inception_v2_coco_2017_11_17/saved_model";
+    private static final String MODEL_FILE_PATH = "/models/ssd_inception_v2_coco_2017_11_17/saved_model";
 
     private SavedModelBundle model;
 
     private String[] labels;
 
     public ObjectDetectionService() throws TextFormat.ParseException {
-        this.model = SavedModelBundle.load(MODEL_FILE_PATH, "serve");
+        this.model = SavedModelBundle.load(System.getProperty("user.dir") + MODEL_FILE_PATH, "serve");
         this.labels = loadLabels();
     }
 
