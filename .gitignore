@@ -27,3 +27,6 @@ target
 
 .idea
 *.iml
+*.prefs
+.project
+.classpath
