@@ -19,14 +19,8 @@ import java.util.List;
 @Path("/object")
 public class ObjectDetectionResource {
 
-    private ObjectDetectionService objectDetectionService;
-
-    public ObjectDetectionResource() throws TextFormat.ParseException {
-        // TODO: Injecting the service results in
-        // Error: Classes that should be initialized at run time got initialized during image building:
-        // org.tensorflow.SavedModelBundle the class was requested to be initialized at build time
-        this.objectDetectionService = new ObjectDetectionService();
-    }
+    @Inject
+    ObjectDetectionService objectDetectionService;
 
     @GET
     @Path("/detect")

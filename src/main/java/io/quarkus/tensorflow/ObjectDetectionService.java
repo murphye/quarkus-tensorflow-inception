@@ -9,6 +9,7 @@ import org.tensorflow.SavedModelBundle;
 import org.tensorflow.Tensor;
 import org.tensorflow.types.UInt8;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -24,10 +25,10 @@ public class ObjectDetectionService {
     private static final String MODEL_FILE_PATH = "/models/ssd_inception_v2_coco_2017_11_17/saved_model";
 
     private SavedModelBundle model;
-
     private String[] labels;
 
-    public ObjectDetectionService() throws TextFormat.ParseException {
+    @PostConstruct
+    void loadModel() throws TextFormat.ParseException {
         this.model = SavedModelBundle.load(System.getProperty("user.dir") + MODEL_FILE_PATH, "serve");
         this.labels = loadLabels();
     }
