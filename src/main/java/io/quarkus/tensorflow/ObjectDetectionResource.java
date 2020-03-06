@@ -24,9 +24,9 @@ public class ObjectDetectionResource {
 
     @GET
     @Path("/detect")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String detectFromURL(@QueryParam("image") String imageURL) {
-        String result;
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ObjectDetectionResult> detectFromURL(@QueryParam("image") String imageURL) {
+        List<ObjectDetectionResult> result;
 
         try {
             URL url = new URL(imageURL);
@@ -35,16 +35,16 @@ public class ObjectDetectionResource {
             result = objectDetectionService.detect(rawData);
         }
         catch(MalformedURLException mue) {
-            result = mue.getMessage();
+            result = null;
         }
         catch(IOException ioe) {
-            result = ioe.getMessage();
+            result = null;
         }
         catch(ImageReadException ire) {
-            result = ire.getMessage();
+            result = null;
         }
         catch (URISyntaxException use) {
-            result = use.getMessage();
+            result = null;
         }
 
         return result;

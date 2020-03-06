@@ -16,6 +16,7 @@ import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
@@ -37,7 +38,7 @@ public class ObjectDetectionService {
         return labels;
     }
 
-    public String detect(byte[] rawData) throws ImageReadException, IOException, URISyntaxException {
+    public List<ObjectDetectionResult> detect(byte[] rawData) throws ImageReadException, IOException, URISyntaxException {
         List<Tensor<?>> outputs = null;
 
         Tensor<UInt8> input = makeImageTensor(rawData);
@@ -48,20 +49,33 @@ public class ObjectDetectionService {
         Tensor<Float> boxesT = outputs.get(2).expect(Float.class);
 
         // All these tensors have: 1 as the first dimension, maxObjects as the second dimension
-        // boxes will have 4 as the third dimension (2 sets of (x, y) coordinates).
+        // Boxes will have 4 as the third dimension (2 sets of (x, y) coordinates).
         int maxObjects = (int) scoresT.shape()[1];
         float[] scores = scoresT.copyTo(new float[1][maxObjects])[0];
         float[] classes = classesT.copyTo(new float[1][maxObjects])[0];
         float[][] boxes = boxesT.copyTo(new float[1][maxObjects][4])[0];
 
-        // Print all objects whose score is at least 0.5.
-        for (int i = 0; i < scores.length; ++i) {
-            if (scores[i] < 0.5) {
+        List<ObjectDetectionResult> results = new ArrayList<>();
+
+        for(int object = 0; object < maxObjects; object++) {
+
+            if (scores[object] < 0.5) {
                 continue;
             }
-            return String.format("\tFound %-20s (score: %.4f)", labels[(int) classes[i]], scores[i]);
+
+            String label = labels[(int) classes[object]];
+            float score = scores[object];
+
+            float x1 = boxes[object][0];
+            float y1 = boxes[object][1];
+            float x2 = boxes[object][2];
+            float y2 = boxes[object][3];
+
+            ObjectDetectionResult result = new ObjectDetectionResult(label, score, x1, y1, x2, y2);
+            results.add(result);
         }
-        return "No objects detected with a high enough score.";
+
+        return results;
     }
 
     private static String[] loadLabels() throws TextFormat.ParseException {
