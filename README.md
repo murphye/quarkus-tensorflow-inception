@@ -4,7 +4,7 @@ This project shows how you can combine TensorFlow and Quarkus together into one 
 JNI, and Protobuf to execute an object detection API in a Quarkus microservice. With this microservice, we detect 
 objects in photos by returning labels, bounding boxes, and confidence scores.
 
-## (Not Currently Working) Running the application in dev mode
+## Running the application in dev mode
 
 You can run your application in dev mode that enables live coding using:
 ```

@@ -4,6 +4,9 @@
             "pattern": ".*\\.pbtxt$"
         },
         {
+            "pattern": ".*\\.pb$"
+        },
+        {
             "pattern": ".*\\.dylib$"
         },
         {

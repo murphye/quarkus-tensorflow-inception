@@ -9,7 +9,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
@@ -29,20 +28,9 @@ public class ObjectDetectionResource {
 
         try {
             URL url = new URL(imageURL);
-            byte[] rawData = ObjectDetectionUtil.downloadFile(url);
-
-            result = objectDetectionService.detect(rawData);
-        }
-        catch(MalformedURLException mue) {
-            result = null;
-        }
-        catch(IOException ioe) {
-            result = null;
-        }
-        catch(ImageReadException ire) {
-            result = null;
-        }
-        catch (URISyntaxException use) {
+            result = objectDetectionService.detect(url);
+        } catch(IOException | URISyntaxException | ImageReadException mue) {
+            mue.printStackTrace();
             result = null;
         }
 
