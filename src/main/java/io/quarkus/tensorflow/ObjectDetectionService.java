@@ -59,15 +59,15 @@ public class ObjectDetectionService {
 
     public List<ObjectDetectionResult> detect(URL url) throws ImageReadException, IOException, URISyntaxException {
         byte[] rawData = downloadFile(url);
-        return detect(rawData);
+        return detect(rawData, 50);
     }
 
-    public List<ObjectDetectionResult> detect(InputStream inputStream) throws ImageReadException, IOException, URISyntaxException {
+    public List<ObjectDetectionResult> detect(InputStream inputStream, int threshold) throws ImageReadException, IOException, URISyntaxException {
         byte[] rawData = ByteStreams.toByteArray(inputStream);
-        return detect(rawData);
+        return detect(rawData, threshold);
     }
 
-    public List<ObjectDetectionResult> detect(byte[] rawData) throws ImageReadException, IOException, URISyntaxException {
+    public List<ObjectDetectionResult> detect(byte[] rawData, int threshold) throws ImageReadException, IOException, URISyntaxException {
         List<Tensor<?>> outputs = null;
 
         Tensor<UInt8> input = makeImageTensor(rawData);
@@ -90,8 +90,9 @@ public class ObjectDetectionService {
         List<ObjectDetectionResult> results = new ArrayList<>();
 
         for(int object = 0; object < maxObjects; object++) {
+            float minScore = threshold / 100f;
 
-            if (scores[object] < 0.5) {
+            if (scores[object] < minScore) {
                 continue;
             }
 

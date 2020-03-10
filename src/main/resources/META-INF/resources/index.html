@@ -29,20 +29,23 @@
 
             var data = this.response;
             for (var i = 0; i < data.length; i++) {
-               html += '<tr><td>' + data[i].label + '</td><td>' + parseFloat(data[i].score * 100).toFixed(2) + '%</td></tr>';
+               html += '<tr><td>' + data[i].label + '</td><td>' + parseFloat(data[i].score * 100).toFixed(2) + ' %</td></tr>';
             }
             html += '</tbody></table>';
             document.getElementById("result-holder").innerHTML = html;
        }
     }
-    request.open('POST', "http://localhost:8080/object/detect");
+    alert(threshold.value);
+
+    request.open('POST', "http://localhost:8080/object/detect/" + threshold.value);
     request.setRequestHeader("Accept", "application/json,text/plain");
     request.send(formData);
   }
   </script>
-<h1>Quarkus + TensorFlow</h1>
+<h1>Test page for Native execution</h1>
 <form>
     <input type="file" name="file" id="fileSelect" size="50"/>
+    <input type="text" size="4" id="threshold" value="50"/>% Confident<br>
     <button type="button" onclick="doSubmit()">Process</button>
     <br/>
 </form>

@@ -38,17 +38,17 @@ public class ObjectDetectionResource {
     }
 
     @POST
-    @Path("/detect")
+    @Path("/detect/{threshold}")
     @Consumes("multipart/form-data")
     @Produces("application/json")
-    public List<ObjectDetectionResult> loadImage(@HeaderParam("Content-Length") String contentLength, MultipartFormDataInput input) {
+    public List<ObjectDetectionResult> loadImage(@HeaderParam("Content-Length") String contentLength, @PathParam("threshold") int threshold, MultipartFormDataInput input) {
         InputPart inputPart = input.getFormDataMap().get("file").iterator().next();
         String fileName = parseFileName(inputPart.getHeaders());
 
         List<ObjectDetectionResult> result = null;
         try {
             InputStream is = inputPart.getBody(InputStream.class, null);
-            result = objectDetectionService.detect(is);
+            result = objectDetectionService.detect(is, threshold);
         }
         catch (IOException | ImageReadException | URISyntaxException e) {
             e.printStackTrace();
