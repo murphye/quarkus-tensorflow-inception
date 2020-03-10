@@ -62,6 +62,11 @@ public class ObjectDetectionService {
         return detect(rawData);
     }
 
+    public List<ObjectDetectionResult> detect(InputStream inputStream) throws ImageReadException, IOException, URISyntaxException {
+        byte[] rawData = ByteStreams.toByteArray(inputStream);
+        return detect(rawData);
+    }
+
     public List<ObjectDetectionResult> detect(byte[] rawData) throws ImageReadException, IOException, URISyntaxException {
         List<Tensor<?>> outputs = null;
 

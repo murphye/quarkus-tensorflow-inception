@@ -42,13 +42,11 @@
         <artifactId>jackson-databind</artifactId>
         <version>2.10.2</version>
     </dependency>
-
     <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-imaging</artifactId>
         <version>1.0-alpha1</version>
     </dependency>
-
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy</artifactId>
@@ -56,6 +54,10 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-multipart-provider</artifactId>
     </dependency>
     <dependency>
       <groupId>org.tensorflow</groupId>
