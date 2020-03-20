@@ -10,11 +10,11 @@ import org.apache.commons.imaging.Imaging;
 import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
+import org.tensorflow.TensorFlowInitializer;
 import org.tensorflow.framework.GraphDef;
 import org.tensorflow.framework.SavedModel;
 import org.tensorflow.types.UInt8;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -37,8 +37,7 @@ public class ObjectDetectionService {
     private Session session;
     private String[] labels;
 
-    @PostConstruct
-    void loadModel() throws IOException, URISyntaxException {
+    public ObjectDetectionService() throws IOException {
         InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(MODEL_FILE_PATH);
 
         byte[] modelBytes = ByteStreams.toByteArray(is);
@@ -47,9 +46,9 @@ public class ObjectDetectionService {
         SavedModel savedModel = SavedModel.parseFrom(modelBytes);
         GraphDef graphDef = savedModel.getMetaGraphsList().get(0).getGraphDef();
 
+        TensorFlowInitializer.init();
         Graph graph = new Graph();
         graph.importGraphDef(graphDef.toByteArray());
-
         this.session = new Session(graph);
     }
 
