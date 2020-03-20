@@ -3,8 +3,6 @@
 
 package object_detection.protos;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
-
 public final class StringIntLabelMapOuterClass {
   private StringIntLabelMapOuterClass() {}
   public static void registerAllExtensions(
