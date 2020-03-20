@@ -107,14 +107,14 @@
                    width = x2 - x1;
                    height = y2 - y1;
 
-                   $('#card-' + cardCount).append('<div style="position: absolute; top: ' + y1 + '%; left: ' + x1 + '%; width: ' + width + '%; height: ' + height + '%; border: 2px solid red"></div>');
+                   $('#card-' + cardCount).append('<div style="position: absolute; top: ' + y1 + '%; left: ' + x1 + '%; width: ' + width + '%; height: ' + height + '%; border: 2px solid #007bff"></div>');
                 }
                 $('#card-body-' + cardCount).html(html);
                 cardCount++;
            }
         }
 
-        request.open('POST', "http://localhost:8080/object/detect/" + 50);
+        request.open('POST', "http://localhost:8080/object/detect/" + 65);
         request.setRequestHeader("Accept", "application/json,text/plain");
         request.send(formData);
       }
