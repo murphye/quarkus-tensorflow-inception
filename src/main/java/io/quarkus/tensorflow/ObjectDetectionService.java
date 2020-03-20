@@ -98,10 +98,10 @@ public class ObjectDetectionService {
             String label = labels[(int) classes[object]];
             float score = scores[object];
 
-            float x1 = boxes[object][0];
-            float y1 = boxes[object][1];
-            float x2 = boxes[object][2];
-            float y2 = boxes[object][3];
+            float y1 = boxes[object][0];
+            float x1 = boxes[object][1];
+            float y2 = boxes[object][2];
+            float x2 = boxes[object][3];
 
             ObjectDetectionResult result = new ObjectDetectionResult(label, score, x1, y1, x2, y2);
             results.add(result);
