@@ -11,6 +11,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -52,6 +53,8 @@ public class ObjectDetectionResource {
         }
         catch (IOException | ImageReadException | URISyntaxException e) {
             e.printStackTrace();
+            result = new ArrayList<>();
+            result.add(new ObjectDetectionResult("Error reading image data. Please try another file.", -1, 0, 0 , 0, 0));
         }
 
         return result;

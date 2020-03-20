@@ -32,6 +32,16 @@
   </dependencyManagement>
   <dependencies>
     <dependency>
+      <groupId>org.webjars</groupId>
+      <artifactId>bootstrap</artifactId>
+      <version>4.4.1-1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.webjars</groupId>
+      <artifactId>jquery</artifactId>
+      <version>3.4.1</version>
+    </dependency>
+    <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-imaging</artifactId>
         <version>1.0-alpha1</version>

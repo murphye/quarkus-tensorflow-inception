@@ -10,7 +10,6 @@ import org.apache.commons.imaging.Imaging;
 import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
-import org.tensorflow.TensorFlowInitializer;
 import org.tensorflow.framework.GraphDef;
 import org.tensorflow.framework.SavedModel;
 import org.tensorflow.types.UInt8;
@@ -21,6 +20,7 @@ import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -37,7 +37,7 @@ public class ObjectDetectionService {
     private Session session;
     private String[] labels;
 
-    public ObjectDetectionService() throws IOException {
+    public ObjectDetectionService() throws IOException, ReflectiveOperationException {
         InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(MODEL_FILE_PATH);
 
         byte[] modelBytes = ByteStreams.toByteArray(is);
@@ -46,7 +46,7 @@ public class ObjectDetectionService {
         SavedModel savedModel = SavedModel.parseFrom(modelBytes);
         GraphDef graphDef = savedModel.getMetaGraphsList().get(0).getGraphDef();
 
-        TensorFlowInitializer.init();
+        forceInitTensorFlow();
         Graph graph = new Graph();
         graph.importGraphDef(graphDef.toByteArray());
         this.session = new Session(graph);
@@ -182,5 +182,20 @@ public class ObjectDetectionService {
             }
         }
         return byteData;
+    }
+
+    /**
+     * This is a GraalVM workaround for static blocks not being executed at runtime in SubstrateVM. Since TensorFlow uses
+     * static blocks to initialize, and the init API is not public, this method offers a new way to access TensorFlow.init.
+     * The alternative is to use --initialize-at-run-time=org.tensorflow.Graph but this takes away compile time benefits
+     * and also prevents initialization of TensorFlow objects inside a constructor.
+     * @link https://medium.com/graalvm/understanding-class-initialization-in-graalvm-native-image-generation-d765b7e4d6ed
+     * @see org.tensorflow.TensorFlow
+     * @see org.tensorflow.Graph
+     */
+    private void forceInitTensorFlow() throws ReflectiveOperationException {
+        Method tfInit = Class.forName("org.tensorflow.TensorFlow").getDeclaredMethod("init");
+        tfInit.setAccessible(true);
+        tfInit.invoke(null);
     }
 }

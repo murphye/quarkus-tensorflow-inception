@@ -1,67 +1,123 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Strict//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <title>Quarkus AI</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Quarkus + TensorFlow Object Recognition</title>
+    <link href="/webjars/bootstrap/4.4.1-1/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="theme-color" content="#563d7c">
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+    <!-- Custom styles for this template -->
+    <link href="album.css" rel="stylesheet">
 </head>
 <body>
+<header>
+    <div class="navbar navbar-dark bg-dark shadow-sm">
+        <div class="container d-flex justify-content-between">
+            <a href="#" class="navbar-brand d-flex align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true" class="mr-2" viewBox="0 0 24 24" focusable="false"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <strong>Quarkus + TensorFlow Object Recognition</strong>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main role="main">
+
+    <section class="jumbotron text-center">
+        <form>
+            <input type="file" name="file" id="fileSelect" class="btn btn-primary"/>
+        </form>
+    </section>
+
+    <div class="album py-5 bg-light">
+        <div class="container">
+            <div class="card-columns" id="cards">
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer class="text-muted">
+    <div class="container">
+    </div>
+</footer>
+
+<script src="/webjars/jquery/3.4.1/jquery.min.js"></script>
+<script src="/webjars/bootstrap/4.4.1-1/js/bootstrap.min.js"></script>
+
+
 <script type="text/javascript">
-  function doSubmit(){
-    // Form Data
-    var formData = new FormData();
 
-    var fileSelect = document.getElementById("fileSelect");
-    if(fileSelect.files && fileSelect.files.length == 1){
-     var file = fileSelect.files[0]
-     formData.set("file", file , file.name);
-    }
+      var cardCount  = 0;
 
-    // Http Request
-    var request = new XMLHttpRequest();
-    request.responseType = "json";
-    request.onreadystatechange = function() {
-        if (this.readyState == 1) {
-            document.getElementById("result-holder").innerHTML = "Waiting...";
+      function doSubmit(){
+        var formData = new FormData();
+
+        var fileSelect = document.getElementById("fileSelect");
+        if(fileSelect.files && fileSelect.files.length == 1){
+         var file = fileSelect.files[0]
+         formData.set("file", file , file.name);
         }
-        if (this.readyState == 4 && this.status == 200) {
-            var html = '<table><thead><tr><th>Label</th><th>Percentage</th></tr></thead><tbody>';
 
-            var data = this.response;
-            for (var i = 0; i < data.length; i++) {
-               html += '<tr><td>' + data[i].label + '</td><td>' + parseFloat(data[i].score * 100).toFixed(2) + ' %</td></tr>';
-            }
-            html += '</tbody></table>';
-            document.getElementById("result-holder").innerHTML = html;
-       }
-    }
+        // Http Request
+        var request = new XMLHttpRequest();
+        request.responseType = "json";
+        request.onreadystatechange = function() {
+            var html = '';
 
-    request.open('POST', "http://localhost:8080/object/detect/" + threshold.value);
-    request.setRequestHeader("Accept", "application/json,text/plain");
-    request.send(formData);
-  }
-  </script>
-<h1>Quarkus TensorFlow</h1>
-<form>
-    <input type="file" name="file" id="fileSelect" size="50"/>
-    <input type="text" size="4" id="threshold" value="50"/>% Confident<br>
-    <button type="button" onclick="doSubmit()">Process</button>
-    <br/>
-</form>
-<br/>
-<div><img src="" id="preview-img-holder" width="512px" /></div>
-<br/>
-<div id="result-holder"></div>
+            if (this.readyState == 4 && this.status == 200) {
+                var data = this.response;
+                for (var i = 0; i < data.length; i++) {
+                   var label = data[i].label;
+                   var score = data[i].score;
+                   var badgeType = 'primary';
+                   if(score < 0) {
+                     badgeType = 'danger';
+                     score = label;
+                     label = 'error';
+                   }
+                   else {
+                     score = parseFloat(data[i].score * 100).toFixed(2);
+                   }
 
-<script type="text/javascript">
+                   html += '<span class="badge badge-pill badge-' + badgeType + '" data-toggle="tooltip" data-placement="right" title="' + score + '">' + label + '</span> '
+                }
+                $('#card-body-' + cardCount).html(html);
+                cardCount++;
+           }
+        }
+
+        request.open('POST', "http://localhost:8080/object/detect/" + 50);
+        request.setRequestHeader("Accept", "application/json,text/plain");
+        request.send(formData);
+      }
+
     function readURL(input) {
       if (input.files && input.files[0]) {
         var reader = new FileReader();
         reader.onload = function (e) {
-            $('#preview-img-holder').attr('src', e.target.result);
+            $('#cards').append('<div class="card w-300"><img class="card-img-top" src="' + e.target.result + '"><div class="card-body" id="card-body-' + cardCount + '"></div></div>');
         }
         reader.readAsDataURL(input.files[0]);
-        document.getElementById("result-holder").innerHTML = "";
+        doSubmit();
       }
     }
     $("#fileSelect").on('change', function(){
