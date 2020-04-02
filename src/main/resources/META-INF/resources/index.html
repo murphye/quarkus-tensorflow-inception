@@ -40,9 +40,34 @@
 <main role="main">
 
     <section class="text-center" style="padding: 60px; background-color: #242a30">
-        <form>
-            <input type="file" name="file" id="fileSelect" class="btn btn-primary"/>
+        <form class="form-inline justify-content-around">
+            <div class="input-group mb-2">
+                <input type="file" name="file" id="fileSelect" class="btn btn-primary"/>
+            </div>
+            <div class="mb-2">
+                <span style="color: white; font-size: 10pt">
+                    <span style="font-size: 20pt; color: #007bff">Upload Image File or Submit URL</span><br>
+                    Image must be JPEG (not heavily compressed), PNG, or GIF.
+                </span>
+            </div>
+            <div class="input-group mx-sm-3 mb-2">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Image URL</span>
+                </div>
+                <input id="image-url" type="url" class="form-control">
+                <div class="input-group-append">
+                    <input class="btn btn-primary" type="button" value="Submit" onclick="submitURL()">
+                </div>
+            </div>
         </form>
+
+        <div id="alert" class="alert alert-danger alert-fixed alert-dismissible fade" role="alert">
+            <span>There was an error reading your image. <b>Please try a different one.</b></span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
     </section>
 
     <div class="album py-5 bg-light">
@@ -65,15 +90,27 @@
 
 <script type="text/javascript">
 
-      var cardCount  = 0;
+    var cardCount  = 0;
 
-      function highlightBB(cardCount, bbCount) {
+    if (!!window.EventSource) {
+        var eventSource = new EventSource("/object/stream");
+        eventSource.onmessage = function (event) {
+            data = JSON.parse(event.data);
+            showResult(data);
+        };
+    }
+    else {
+        window.alert("EventSource not available on this browser.")
+    }
+
+
+    function highlightBB(cardCount, bbCount) {
         $('#bb-' + cardCount + '-' + bbCount).css('border','2px solid red');
-      }
+    }
 
-      function resetBB(cardCount, bbCount) {
+    function resetBB(cardCount, bbCount) {
         $('#bb-' + cardCount + '-' + bbCount).css('border','2px solid #007bff');
-      }
+    }
 
       function doSubmit(){
         var formData = new FormData();
@@ -88,47 +125,8 @@
         var request = new XMLHttpRequest();
         request.responseType = "json";
         request.onreadystatechange = function() {
-            var html = '';
-
             if (this.readyState == 4 && this.status == 200) {
-
-                var results = this.response.results;
-                var mediaType = this.response.mediaType;
-                var base64EncodedData = this.response.base64EncodedData;
-                var imageWidth = this.response.width;
-                var imageHeight = this.response.height;
-                var error = this.response.error;
-
-                $('#card-' + cardCount).append('<img class="card-img-top" width="' + imageWidth + '" src="data:' + mediaType + ';base64,' + base64EncodedData + '">');
-
-                for (var i = 0; i < results.length; i++) {
-
-                   var label = results[i].label;
-                   var score = results[i].score;
-                   var badgeType = 'primary';
-                   if(score < 0) {
-                     badgeType = 'danger';
-                     score = label;
-                     label = 'error';
-                   }
-                   else {
-                     score = parseFloat(results[i].score * 100).toFixed(2);
-                   }
-
-                   html += '<span class="badge badge-pill badge-' + badgeType + '" data-toggle="tooltip" data-placement="right" title="' + score + '% Confident" onmouseover="highlightBB(' + cardCount + ',' + i + ')" onmouseout="resetBB(' + cardCount + ',' + i + ')">' + label + '</span> ';
-
-                   var x1 = parseFloat(results[i].x1 * 100).toFixed(2);
-                   var y1 = parseFloat(results[i].y1 * 100).toFixed(2);
-                   var x2 = parseFloat(results[i].x2 * 100).toFixed(2);
-                   var y2 = parseFloat(results[i].y2 * 100).toFixed(2);
-
-                   boundingWidth = x2 - x1;
-                   boundingHeight = y2 - y1;
-
-                   $('#card-' + cardCount).append('<div id="bb-' + cardCount + '-' + i + '" style="position: absolute; top: ' + y1 + '%; left: ' + x1 + '%; width: ' + boundingWidth + '%; height: ' + boundingHeight + '%; border: 2px solid #007bff"></div>');
-                }
-                $('#card-body-' + cardCount).html(html);
-                cardCount++;
+                //showResult(this.response);
            }
         }
 
@@ -137,11 +135,58 @@
         request.send(formData);
       }
 
+function showResult(response) {
+
+
+    var html = '';
+    var results = response.results;
+    var mediaType = response.mediaType;
+    var base64EncodedData = response.base64EncodedData;
+    var imageWidth = response.width;
+    var imageHeight = response.height;
+    var error = response.error;
+
+    if(error != null) return;
+
+    $('#cards').append('<div class="card w-300"><div id="card-' + cardCount +'" style="position: relative"></div><div class="card-body" id="card-body-' + cardCount + '"></div></div>');
+    $('#card-' + cardCount).append('<img class="card-img-top" width="' + imageWidth + '" src="data:' + mediaType + ';base64,' + base64EncodedData + '">');
+
+    for (var i = 0; i < results.length; i++) {
+
+       var label = results[i].label;
+       var score = results[i].score;
+       var badgeType = 'primary';
+       if(score < 0) {
+         badgeType = 'danger';
+         score = label;
+         label = 'error';
+       }
+       else {
+         score = parseFloat(results[i].score * 100).toFixed(2);
+       }
+
+       html += '<span class="badge badge-pill badge-' + badgeType + '" data-toggle="tooltip" data-placement="right" title="' + score + '% Confident" onmouseover="highlightBB(' + cardCount + ',' + i + ')" onmouseout="resetBB(' + cardCount + ',' + i + ')">' + label + '</span> ';
+
+       var x1 = parseFloat(results[i].x1 * 100).toFixed(2);
+       var y1 = parseFloat(results[i].y1 * 100).toFixed(2);
+       var x2 = parseFloat(results[i].x2 * 100).toFixed(2);
+       var y2 = parseFloat(results[i].y2 * 100).toFixed(2);
+
+       boundingWidth = x2 - x1;
+       boundingHeight = y2 - y1;
+
+       $('#card-' + cardCount).append('<div id="bb-' + cardCount + '-' + i + '" style="position: absolute; top: ' + y1 + '%; left: ' + x1 + '%; width: ' + boundingWidth + '%; height: ' + boundingHeight + '%; border: 2px solid #007bff"></div>');
+    }
+
+    $('#card-body-' + cardCount).html(html);
+    cardCount++;
+}
+
     function readURL(input) {
       if (input.files && input.files[0]) {
         var reader = new FileReader();
         reader.onload = function (e) {
-            $('#cards').append('<div class="card w-300"><div id="card-' + cardCount +'" style="position: relative"></div><div class="card-body" id="card-body-' + cardCount + '"></div></div>');
+
         }
         reader.readAsDataURL(input.files[0]);
         doSubmit();
@@ -150,6 +195,36 @@
     $("#fileSelect").on('change', function(){
       readURL(this);
     });
+
+    function submitURL() {
+        var url =$('#image-url').val();
+        if(isURL(url)) {
+            $.get('/object/detect?image=' + url,
+              function (data, textStatus, jqXHR) {  // success callback
+                  if(data.error != null) {
+                      $("#alert").addClass("show");
+                  }
+                  else {
+                      $('#image-url').val("");
+                  }
+            });
+        }
+        else {
+            alert("Not a valid URL!");
+        }
+    }
+
+    function isURL(string) {
+      var url;
+
+      try {
+        url = new URL(string);
+      } catch (err) {
+        return false;
+      }
+
+      return url.protocol === "http:" || url.protocol === "https:";
+    }
   </script>
 
 </body>

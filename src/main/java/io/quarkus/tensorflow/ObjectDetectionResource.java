@@ -2,9 +2,9 @@ package io.quarkus.tensorflow;
 
 import io.smallrye.mutiny.Multi;
 import io.vertx.core.json.JsonObject;
+import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import io.vertx.mutiny.core.eventbus.Message;
-import org.apache.commons.imaging.ImageReadException;
 import org.jboss.resteasy.annotations.SseElementType;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
@@ -15,12 +15,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.*;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 @Path("/object")
 public class ObjectDetectionResource {
@@ -30,6 +27,9 @@ public class ObjectDetectionResource {
 
     @Inject
     EventBus eventBus;
+
+    @Inject
+    Vertx vertx;
 
     @GET
     @Path("/detect")
@@ -44,6 +44,7 @@ public class ObjectDetectionResource {
                 resultComplete = objectDetectionService.detect(url);
             }
             catch(Exception e) {
+                e.printStackTrace();
                 resultComplete = new ObjectDetectionResultComplete();
                 resultComplete.setError(e.getMessage());
             }
@@ -56,7 +57,9 @@ public class ObjectDetectionResource {
             resultComplete.setError(e.getMessage());
         }
 
-        eventBus.publish("result_stream", JsonObject.mapFrom(resultComplete));
+        final JsonObject jsonObject = JsonObject.mapFrom(resultComplete);
+        eventBus.publish("result_stream", jsonObject);
+
         return resultComplete;
     }
 
@@ -74,6 +77,7 @@ public class ObjectDetectionResource {
             resultComplete = objectDetectionService.detect(is, threshold);
         }
         catch (Exception e) {
+            e.printStackTrace();
             resultComplete = new ObjectDetectionResultComplete();
             resultComplete.setError("Error reading image data. Please try another file.");
         }
@@ -81,7 +85,9 @@ public class ObjectDetectionResource {
             resultComplete.setFileName(fileName);
         }
 
-        eventBus.publish("result_stream", JsonObject.mapFrom(resultComplete));
+        final JsonObject jsonObject = JsonObject.mapFrom(resultComplete);
+        eventBus.publish("result_stream", jsonObject);
+
         return resultComplete;
     }
 
@@ -92,16 +98,14 @@ public class ObjectDetectionResource {
         return Arrays.asList(objectDetectionService.getLabels());
     }
 
-
     @GET
-    @Path("/subscribe")
+    @Path("/stream")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @SseElementType(MediaType.APPLICATION_JSON)
-    public Multi<JsonObject> subscribe()
+    public Multi<JsonObject> stream()
     {
         return eventBus.<JsonObject>consumer("result_stream").toMulti().on().item().apply(Message::body);
     }
-
 
     /**
      * Parse Content-Disposition header to get the original file name.
