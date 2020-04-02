@@ -1,6 +1,11 @@
 package io.quarkus.tensorflow;
 
+import io.smallrye.mutiny.Multi;
+import io.vertx.core.json.JsonObject;
+import io.vertx.mutiny.core.eventbus.EventBus;
+import io.vertx.mutiny.core.eventbus.Message;
 import org.apache.commons.imaging.ImageReadException;
+import org.jboss.resteasy.annotations.SseElementType;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 
@@ -20,6 +25,9 @@ public class ObjectDetectionResource {
 
     @Inject
     ObjectDetectionService objectDetectionService;
+
+    @Inject
+    EventBus eventBus;
 
     @GET
     @Path("/detect")
@@ -57,6 +65,12 @@ public class ObjectDetectionResource {
             result.add(new ObjectDetectionResult("Error reading image data. Please try another file.", -1, 0, 0 , 0, 0));
         }
 
+        var objectDetectionResultComplete = new ObjectDetectionResultComplete();
+        objectDetectionResultComplete.setResults(result);
+        objectDetectionResultComplete.setFileName(fileName);
+
+        eventBus.publish("result_stream", JsonObject.mapFrom(objectDetectionResultComplete));
+
         return result;
     }
 
@@ -66,6 +80,17 @@ public class ObjectDetectionResource {
     public List<String> labels(@QueryParam("image") String imageURL) {
         return Arrays.asList(objectDetectionService.getLabels());
     }
+
+
+    @GET
+    @Path("/subscribe")
+    @Produces(MediaType.SERVER_SENT_EVENTS)
+    @SseElementType(MediaType.APPLICATION_JSON)
+    public Multi<JsonObject> subscribe()
+    {
+        return eventBus.<JsonObject>consumer("result_stream").toMulti().on().item().apply(Message::body);
+    }
+
 
     /**
      * Parse Content-Disposition header to get the original file name.
