@@ -26,6 +26,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 @ApplicationScoped
@@ -56,20 +57,23 @@ public class ObjectDetectionService {
         return labels;
     }
 
-    public List<ObjectDetectionResult> detect(URL url) throws ImageReadException, IOException, URISyntaxException {
+    public ObjectDetectionResultComplete detect(URL url) throws Exception {
         byte[] rawData = downloadFile(url);
         return detect(rawData, 50);
     }
 
-    public List<ObjectDetectionResult> detect(InputStream inputStream, int threshold) throws ImageReadException, IOException, URISyntaxException {
+    public ObjectDetectionResultComplete detect(InputStream inputStream, int threshold) throws Exception {
         byte[] rawData = ByteStreams.toByteArray(inputStream);
         return detect(rawData, threshold);
     }
 
-    public List<ObjectDetectionResult> detect(byte[] rawData, int threshold) throws ImageReadException, IOException, URISyntaxException {
+    public ObjectDetectionResultComplete detect(byte[] rawData, int threshold) throws Exception {
+        // Get metadata about the image from the raw bytes
+        ImageInfo imageInfo = Imaging.getImageInfo(rawData);
+
         List<Tensor<?>> outputs = null;
 
-        Tensor<UInt8> input = makeImageTensor(rawData);
+        Tensor<UInt8> input = makeImageTensor(rawData, imageInfo);
         outputs= session.runner().feed("image_tensor", input)
                 .fetch("detection_scores")
                 .fetch("detection_classes")
@@ -107,7 +111,29 @@ public class ObjectDetectionService {
             results.add(result);
         }
 
-        return results;
+        ObjectDetectionResultComplete objectDetectionResultComplete = new ObjectDetectionResultComplete();
+        objectDetectionResultComplete.setResults(results);
+        objectDetectionResultComplete.setMediaType(mediaType(imageInfo));
+        objectDetectionResultComplete.setBase64EncodedData(Base64.getEncoder().encodeToString(rawData));
+        objectDetectionResultComplete.setWidth(imageInfo.getWidth());
+        objectDetectionResultComplete.setHeight(imageInfo.getHeight());
+
+        return objectDetectionResultComplete;
+    }
+
+    private static String mediaType(ImageInfo imageInfo) throws Exception {
+        String extension = imageInfo.getFormat().getExtension();
+        switch(extension) {
+            case "GIF":
+                return "image/gif";
+            case "JPEG":
+                // code block
+                return "image/jpg";
+            case "PNG":
+                return "image/png";
+            default:
+                throw new Exception(extension + " format type is unsupported for the MediaType!");
+        }
     }
 
     private static String[] loadLabels() throws IOException {
@@ -129,9 +155,7 @@ public class ObjectDetectionService {
         return ret;
     }
 
-    private static Tensor<UInt8> makeImageTensor(byte[] rawData) throws IOException, URISyntaxException, ImageReadException {
-        // Get metadata about the image from the raw bytes
-        ImageInfo imageInfo = Imaging.getImageInfo(rawData);
+    private static Tensor<UInt8> makeImageTensor(byte[] rawData, ImageInfo imageInfo) throws IOException, URISyntaxException, ImageReadException {
         // Load the image from the raw bytes
         BufferedImage img = Imaging.getBufferedImage(rawData);
         // Get the image as an array of RGB integer values

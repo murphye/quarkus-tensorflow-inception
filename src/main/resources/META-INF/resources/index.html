@@ -83,10 +83,19 @@
             var html = '';
 
             if (this.readyState == 4 && this.status == 200) {
-                var data = this.response;
-                for (var i = 0; i < data.length; i++) {
-                   var label = data[i].label;
-                   var score = data[i].score;
+
+                var results = this.response.results;
+                var mediaType = this.response.mediaType;
+                var base64EncodedData = this.response.base64EncodedData;
+                var imageWidth = this.response.width;
+                var imageHeight = this.response.height;
+                var error = this.response.error;
+
+                $('#card-' + cardCount).append('<img class="card-img-top" width="' + imageWidth + '" src="data:' + mediaType + ';base64,' + base64EncodedData + '">');
+
+                for (var i = 0; i < results.length; i++) {
+                   var label = results[i].label;
+                   var score = results[i].score;
                    var badgeType = 'primary';
                    if(score < 0) {
                      badgeType = 'danger';
@@ -94,20 +103,20 @@
                      label = 'error';
                    }
                    else {
-                     score = parseFloat(data[i].score * 100).toFixed(2);
+                     score = parseFloat(results[i].score * 100).toFixed(2);
                    }
 
                    html += '<span class="badge badge-pill badge-' + badgeType + '" data-toggle="tooltip" data-placement="right" title="' + score + '% Confident">' + label + '</span> ';
 
-                   var x1 = parseFloat(data[i].x1 * 100).toFixed(2);
-                   var y1 = parseFloat(data[i].y1 * 100).toFixed(2);
-                   var x2 = parseFloat(data[i].x2 * 100).toFixed(2);
-                   var y2 = parseFloat(data[i].y2 * 100).toFixed(2);
+                   var x1 = parseFloat(results[i].x1 * 100).toFixed(2);
+                   var y1 = parseFloat(results[i].y1 * 100).toFixed(2);
+                   var x2 = parseFloat(results[i].x2 * 100).toFixed(2);
+                   var y2 = parseFloat(results[i].y2 * 100).toFixed(2);
 
-                   width = x2 - x1;
-                   height = y2 - y1;
+                   boundingWidth = x2 - x1;
+                   boundingHeight = y2 - y1;
 
-                   $('#card-' + cardCount).append('<div style="position: absolute; top: ' + y1 + '%; left: ' + x1 + '%; width: ' + width + '%; height: ' + height + '%; border: 2px solid #007bff"></div>');
+                   $('#card-' + cardCount).append('<div style="position: absolute; top: ' + y1 + '%; left: ' + x1 + '%; width: ' + boundingWidth + '%; height: ' + boundingHeight + '%; border: 2px solid #007bff"></div>');
                 }
                 $('#card-body-' + cardCount).html(html);
                 cardCount++;
@@ -123,7 +132,7 @@
       if (input.files && input.files[0]) {
         var reader = new FileReader();
         reader.onload = function (e) {
-            $('#cards').append('<div class="card w-300"><div id="card-' + cardCount +'" style="position: relative"><img class="card-img-top" src="' + e.target.result + '"></div><div class="card-body" id="card-body-' + cardCount + '"></div></div>');
+            $('#cards').append('<div class="card w-300"><div id="card-' + cardCount +'" style="position: relative"></div><div class="card-body" id="card-body-' + cardCount + '"></div></div>');
         }
         reader.readAsDataURL(input.files[0]);
         doSubmit();

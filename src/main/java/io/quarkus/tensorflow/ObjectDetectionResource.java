@@ -14,11 +14,13 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 @Path("/object")
 public class ObjectDetectionResource {
@@ -32,46 +34,55 @@ public class ObjectDetectionResource {
     @GET
     @Path("/detect")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ObjectDetectionResult> detectFromURL(@QueryParam("image") String imageURL) {
-        List<ObjectDetectionResult> result = null;
+    public ObjectDetectionResultComplete detectFromURL(@QueryParam("image") String imageURL) {
+        ObjectDetectionResultComplete resultComplete = null;
 
         try {
             URL url = new URL(imageURL);
-            result = objectDetectionService.detect(url);
+
+            try {
+                resultComplete = objectDetectionService.detect(url);
+            }
+            catch(Exception e) {
+                resultComplete = new ObjectDetectionResultComplete();
+                resultComplete.setError(e.getMessage());
+            }
+            finally {
+                resultComplete.setFileName(url.getFile());
+            }
         }
-        catch(IOException | URISyntaxException | ImageReadException mue) {
-            mue.printStackTrace();
+        catch (MalformedURLException e) {
+            resultComplete = new ObjectDetectionResultComplete();
+            resultComplete.setError(e.getMessage());
         }
 
-        return result;
+        eventBus.publish("result_stream", JsonObject.mapFrom(resultComplete));
+        return resultComplete;
     }
 
     @POST
     @Path("/detect/{threshold}")
     @Consumes("multipart/form-data")
     @Produces("application/json")
-    public List<ObjectDetectionResult> loadImage(@HeaderParam("Content-Length") String contentLength, @PathParam("threshold") int threshold, MultipartFormDataInput input) {
+    public ObjectDetectionResultComplete loadImage(@HeaderParam("Content-Length") String contentLength, @PathParam("threshold") int threshold, MultipartFormDataInput input) {
         InputPart inputPart = input.getFormDataMap().get("file").iterator().next();
         String fileName = parseFileName(inputPart.getHeaders());
+        ObjectDetectionResultComplete resultComplete = null;
 
-        List<ObjectDetectionResult> result = null;
         try {
             InputStream is = inputPart.getBody(InputStream.class, null);
-            result = objectDetectionService.detect(is, threshold);
+            resultComplete = objectDetectionService.detect(is, threshold);
         }
-        catch (IOException | ImageReadException | URISyntaxException e) {
-            e.printStackTrace();
-            result = new ArrayList<>();
-            result.add(new ObjectDetectionResult("Error reading image data. Please try another file.", -1, 0, 0 , 0, 0));
+        catch (Exception e) {
+            resultComplete = new ObjectDetectionResultComplete();
+            resultComplete.setError("Error reading image data. Please try another file.");
+        }
+        finally {
+            resultComplete.setFileName(fileName);
         }
 
-        var objectDetectionResultComplete = new ObjectDetectionResultComplete();
-        objectDetectionResultComplete.setResults(result);
-        objectDetectionResultComplete.setFileName(fileName);
-
-        eventBus.publish("result_stream", JsonObject.mapFrom(objectDetectionResultComplete));
-
-        return result;
+        eventBus.publish("result_stream", JsonObject.mapFrom(resultComplete));
+        return resultComplete;
     }
 
     @GET
