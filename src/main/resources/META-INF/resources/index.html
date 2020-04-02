@@ -67,6 +67,14 @@
 
       var cardCount  = 0;
 
+      function highlightBB(cardCount, bbCount) {
+        $('#bb-' + cardCount + '-' + bbCount).css('border','2px solid red');
+      }
+
+      function resetBB(cardCount, bbCount) {
+        $('#bb-' + cardCount + '-' + bbCount).css('border','2px solid #007bff');
+      }
+
       function doSubmit(){
         var formData = new FormData();
 
@@ -94,6 +102,7 @@
                 $('#card-' + cardCount).append('<img class="card-img-top" width="' + imageWidth + '" src="data:' + mediaType + ';base64,' + base64EncodedData + '">');
 
                 for (var i = 0; i < results.length; i++) {
+
                    var label = results[i].label;
                    var score = results[i].score;
                    var badgeType = 'primary';
@@ -106,7 +115,7 @@
                      score = parseFloat(results[i].score * 100).toFixed(2);
                    }
 
-                   html += '<span class="badge badge-pill badge-' + badgeType + '" data-toggle="tooltip" data-placement="right" title="' + score + '% Confident">' + label + '</span> ';
+                   html += '<span class="badge badge-pill badge-' + badgeType + '" data-toggle="tooltip" data-placement="right" title="' + score + '% Confident" onmouseover="highlightBB(' + cardCount + ',' + i + ')" onmouseout="resetBB(' + cardCount + ',' + i + ')">' + label + '</span> ';
 
                    var x1 = parseFloat(results[i].x1 * 100).toFixed(2);
                    var y1 = parseFloat(results[i].y1 * 100).toFixed(2);
@@ -116,7 +125,7 @@
                    boundingWidth = x2 - x1;
                    boundingHeight = y2 - y1;
 
-                   $('#card-' + cardCount).append('<div style="position: absolute; top: ' + y1 + '%; left: ' + x1 + '%; width: ' + boundingWidth + '%; height: ' + boundingHeight + '%; border: 2px solid #007bff"></div>');
+                   $('#card-' + cardCount).append('<div id="bb-' + cardCount + '-' + i + '" style="position: absolute; top: ' + y1 + '%; left: ' + x1 + '%; width: ' + boundingWidth + '%; height: ' + boundingHeight + '%; border: 2px solid #007bff"></div>');
                 }
                 $('#card-body-' + cardCount).html(html);
                 cardCount++;
