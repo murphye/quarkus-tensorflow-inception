@@ -26,63 +26,59 @@
     <!-- Custom styles for this template -->
     <link href="album.css" rel="stylesheet">
 </head>
-<body>
-<header>
-    <div class="navbar navbar-dark bg-dark shadow-sm">
-        <div class="container d-flex justify-content-between">
-            <a href="#" class="navbar-brand d-flex align-items-center">
-                <strong>Quarkus + TensorFlow Object Recognition</strong>
-            </a>
-        </div>
-    </div>
-</header>
+<body class="d-flex flex-column h-100">
 
-<main role="main">
-
-    <section class="text-center" style="padding: 60px; background-color: #242a30">
-        <form class="form-inline justify-content-around">
-            <div class="input-group mb-2">
-                <input type="file" name="file" id="fileSelect" class="btn btn-primary"/>
+    <header>
+        <div class="navbar navbar-dark bg-dark shadow-sm">
+            <div class="container d-flex justify-content-between">
+                <a href="#" class="navbar-brand d-flex align-items-center">
+                    <strong>Quarkus + TensorFlow Object Recognition</strong>
+                </a>
             </div>
-            <div class="mb-2">
+        </div>
+    </header>
+
+    <main role="main">
+
+        <footer class="text-center" style="padding: 60px; background-color: #242a30">
+            <form class="form-inline justify-content-around">
+                <div class="input-group mb-2">
+                    <input type="file" name="file" id="fileSelect" class="btn btn-primary"/>
+                </div>
+                <div class="mb-2">
                 <span style="color: white; font-size: 10pt">
                     <span style="font-size: 20pt; color: #007bff">Upload Image File or Submit URL</span><br>
                     Image must be JPEG (not heavily compressed), PNG, or GIF.
                 </span>
-            </div>
-            <div class="input-group mx-sm-3 mb-2">
-                <div class="input-group-prepend">
-                    <span class="input-group-text">Image URL</span>
                 </div>
-                <input id="image-url" type="url" class="form-control">
-                <div class="input-group-append">
-                    <input class="btn btn-primary" type="button" value="Submit" onclick="submitURL()">
+                <div class="input-group mx-sm-3 mb-2">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Image URL</span>
+                    </div>
+                    <input id="image-url" type="url" class="form-control">
+                    <div class="input-group-append">
+                        <input class="btn btn-primary" type="button" value="Submit" onclick="submitURL()">
+                    </div>
                 </div>
-            </div>
-        </form>
+            </form>
 
-        <div id="alert" class="alert alert-danger alert-fixed alert-dismissible fade" role="alert">
-            <span>There was an error reading your image. <b>Please try a different one.</b></span>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+            <div id="alert" class="alert alert-danger alert-fixed alert-dismissible fade" role="alert">
+                <span>There was an error reading your image. <b>Please try a different one.</b></span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+        </footer>
+
+        <div class="album py-5 bg-light">
+            <div class="container">
+                <div class="card-columns" id="cards">
+                </div>
+            </div>
         </div>
 
-    </section>
-
-    <div class="album py-5 bg-light">
-        <div class="container">
-            <div class="card-columns" id="cards">
-            </div>
-        </div>
-    </div>
-
-</main>
-
-<footer class="text-muted">
-    <div class="container">
-    </div>
-</footer>
+    </main>
 
 <script src="/webjars/jquery/3.4.1/jquery.min.js"></script>
 <script src="/webjars/bootstrap/4.4.1-1/js/bootstrap.min.js"></script>
@@ -124,11 +120,6 @@
         // Http Request
         var request = new XMLHttpRequest();
         request.responseType = "json";
-        request.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                //showResult(this.response);
-           }
-        }
 
         request.open('POST', "http://localhost:8080/object/detect/" + 65);
         request.setRequestHeader("Accept", "application/json,text/plain");
@@ -160,7 +151,7 @@ function displayResult(response, data) {
 
     if(error != null) return;
 
-    $('#cards').append('<div class="card w-300"><div id="card-' + cardCount +'" style="position: relative"></div><div class="card-body" id="card-body-' + cardCount + '"></div></div>');
+    $('#cards').prepend('<div class="card w-300"><div id="card-' + cardCount +'" style="position: relative"></div><div class="card-body" id="card-body-' + cardCount + '"></div></div>');
     $('#card-' + cardCount).append('<img class="card-img-top" width="' + imageWidth + '" src="data:' + mediaType + ';base64,' + data + '">');
 
     for (var i = 0; i < results.length; i++) {
