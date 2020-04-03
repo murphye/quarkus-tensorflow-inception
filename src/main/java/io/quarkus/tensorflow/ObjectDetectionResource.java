@@ -1,9 +1,7 @@
 package io.quarkus.tensorflow;
 
 import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
-import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import org.jboss.resteasy.annotations.SseElementType;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
@@ -27,13 +25,10 @@ public class ObjectDetectionResource {
     @Inject
     EventBus eventBus;
 
-    @Inject
-    Vertx vertx;
-
     @GET
     @Path("/detect")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<ObjectDetectionResultComplete> detectFromURL(@QueryParam("image") String imageURL) {
+    public ObjectDetectionResultComplete detectFromURL(@QueryParam("image") String imageURL) {
         ObjectDetectionResultComplete resultComplete = null;
 
         try {
@@ -59,14 +54,14 @@ public class ObjectDetectionResource {
         final JsonObject jsonObject = JsonObject.mapFrom(resultComplete);
         eventBus.publish("result_stream", jsonObject.encode());
 
-        return Uni.createFrom().item(resultComplete);
+        return resultComplete;
     }
 
     @POST
     @Path("/detect/{threshold}")
     @Consumes("multipart/form-data")
     @Produces("application/json")
-    public Uni<ObjectDetectionResultComplete> loadImage(@HeaderParam("Content-Length") String contentLength, @PathParam("threshold") int threshold, MultipartFormDataInput input) {
+    public ObjectDetectionResultComplete loadImage(@HeaderParam("Content-Length") String contentLength, @PathParam("threshold") int threshold, MultipartFormDataInput input) {
         InputPart inputPart = input.getFormDataMap().get("file").iterator().next();
         String fileName = parseFileName(inputPart.getHeaders());
         ObjectDetectionResultComplete resultComplete = null;
@@ -87,7 +82,7 @@ public class ObjectDetectionResource {
         final JsonObject jsonObject = JsonObject.mapFrom(resultComplete);
         eventBus.publish("result_stream", jsonObject.encode());
 
-        return Uni.createFrom().item(resultComplete);
+        return resultComplete;
     }
 
     @GET
