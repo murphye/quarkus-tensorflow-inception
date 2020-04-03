@@ -7,7 +7,7 @@ public class ObjectDetectionResultComplete {
     private String fileName;
     private List<ObjectDetectionResult> results;
     private String mediaType;
-    private String base64EncodedData;
+    private String data;
 
     private int width;
     private int height;
@@ -37,12 +37,12 @@ public class ObjectDetectionResultComplete {
         this.mediaType = mediaType;
     }
 
-    public String getBase64EncodedData() {
-        return base64EncodedData;
+    public String getData() {
+        return data;
     }
 
-    public void setBase64EncodedData(String base64EncodedData) {
-        this.base64EncodedData = base64EncodedData;
+    public void setData(String data) {
+        this.data = data;
     }
 
     public int getWidth() {

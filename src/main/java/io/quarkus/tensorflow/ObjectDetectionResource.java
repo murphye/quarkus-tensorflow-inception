@@ -1,10 +1,10 @@
 package io.quarkus.tensorflow;
 
 import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.eventbus.EventBus;
-import io.vertx.mutiny.core.eventbus.Message;
 import org.jboss.resteasy.annotations.SseElementType;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
@@ -16,8 +16,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Path("/object")
 public class ObjectDetectionResource {
@@ -31,10 +30,19 @@ public class ObjectDetectionResource {
     @Inject
     Vertx vertx;
 
+    private Map<String, String> imageData = new HashMap<>();
+
+    @GET
+    @Path("/data")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getImageData(@QueryParam("uuid") String uuid){
+        return imageData.get(uuid);
+    }
+
     @GET
     @Path("/detect")
     @Produces(MediaType.APPLICATION_JSON)
-    public ObjectDetectionResultComplete detectFromURL(@QueryParam("image") String imageURL) {
+    public Uni<ObjectDetectionResultComplete> detectFromURL(@QueryParam("image") String imageURL) {
         ObjectDetectionResultComplete resultComplete = null;
 
         try {
@@ -42,6 +50,9 @@ public class ObjectDetectionResource {
 
             try {
                 resultComplete = objectDetectionService.detect(url);
+                String uuidRef = UUID.randomUUID().toString();
+                imageData.put(uuidRef, resultComplete.getData());
+                resultComplete.setData(uuidRef);
             }
             catch(Exception e) {
                 e.printStackTrace();
@@ -58,16 +69,16 @@ public class ObjectDetectionResource {
         }
 
         final JsonObject jsonObject = JsonObject.mapFrom(resultComplete);
-        eventBus.publish("result_stream", jsonObject);
+        eventBus.publish("result_stream", jsonObject.encode());
 
-        return resultComplete;
+        return Uni.createFrom().item(resultComplete);
     }
 
     @POST
     @Path("/detect/{threshold}")
     @Consumes("multipart/form-data")
     @Produces("application/json")
-    public ObjectDetectionResultComplete loadImage(@HeaderParam("Content-Length") String contentLength, @PathParam("threshold") int threshold, MultipartFormDataInput input) {
+    public Uni<ObjectDetectionResultComplete> loadImage(@HeaderParam("Content-Length") String contentLength, @PathParam("threshold") int threshold, MultipartFormDataInput input) {
         InputPart inputPart = input.getFormDataMap().get("file").iterator().next();
         String fileName = parseFileName(inputPart.getHeaders());
         ObjectDetectionResultComplete resultComplete = null;
@@ -75,6 +86,9 @@ public class ObjectDetectionResource {
         try {
             InputStream is = inputPart.getBody(InputStream.class, null);
             resultComplete = objectDetectionService.detect(is, threshold);
+            String uuidRef = UUID.randomUUID().toString();
+            imageData.put(uuidRef, resultComplete.getData());
+            resultComplete.setData(uuidRef);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -86,9 +100,9 @@ public class ObjectDetectionResource {
         }
 
         final JsonObject jsonObject = JsonObject.mapFrom(resultComplete);
-        eventBus.publish("result_stream", jsonObject);
+        eventBus.publish("result_stream", jsonObject.encode());
 
-        return resultComplete;
+        return Uni.createFrom().item(resultComplete);
     }
 
     @GET
@@ -102,9 +116,11 @@ public class ObjectDetectionResource {
     @Path("/stream")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @SseElementType(MediaType.APPLICATION_JSON)
-    public Multi<JsonObject> stream()
+    public Multi<String> stream()
     {
-        return eventBus.<JsonObject>consumer("result_stream").toMulti().on().item().apply(Message::body);
+        return eventBus.<String>consumer("result_stream").toMulti().map(b -> {
+            return b.body();
+        });
     }
 
     /**

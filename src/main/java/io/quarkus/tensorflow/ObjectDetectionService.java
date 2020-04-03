@@ -17,6 +17,7 @@ import org.tensorflow.types.UInt8;
 import javax.enterprise.context.ApplicationScoped;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,6 +29,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 @ApplicationScoped
 public class ObjectDetectionService {
@@ -59,7 +61,7 @@ public class ObjectDetectionService {
 
     public ObjectDetectionResultComplete detect(URL url) throws Exception {
         byte[] rawData = downloadFile(url);
-        return detect(rawData, 50);
+        return detect(rawData, 75);
     }
 
     public ObjectDetectionResultComplete detect(InputStream inputStream, int threshold) throws Exception {
@@ -114,11 +116,27 @@ public class ObjectDetectionService {
         ObjectDetectionResultComplete objectDetectionResultComplete = new ObjectDetectionResultComplete();
         objectDetectionResultComplete.setResults(results);
         objectDetectionResultComplete.setMediaType(mediaType(imageInfo));
-        objectDetectionResultComplete.setBase64EncodedData(Base64.getEncoder().encodeToString(rawData));
+
+        byte[] base64Data = Base64.getEncoder().encode(rawData);
+
+        objectDetectionResultComplete.setData(new String(base64Data));
         objectDetectionResultComplete.setWidth(imageInfo.getWidth());
         objectDetectionResultComplete.setHeight(imageInfo.getHeight());
 
         return objectDetectionResultComplete;
+    }
+
+    private static byte[] gzipCompress(byte[] uncompressedData) {
+        byte[] result = new byte[]{};
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(uncompressedData.length);
+             GZIPOutputStream gzipOS = new GZIPOutputStream(bos)) {
+            gzipOS.write(uncompressedData);
+            gzipOS.close();
+            result = bos.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     private static String mediaType(ImageInfo imageInfo) throws Exception {

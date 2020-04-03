@@ -136,12 +136,24 @@
       }
 
 function showResult(response) {
+    var uuid = response.data;
 
+    $.get('/object/data?uuid=' + uuid,
+      function (data, textStatus, jqXHR) {  // success callback
+          if(data.error != null) {
+              $("#alert").addClass("show");
+          }
+          else {
+              displayResult(response, data);
+          }
+    });
+}
 
+function displayResult(response, data) {
     var html = '';
     var results = response.results;
     var mediaType = response.mediaType;
-    var base64EncodedData = response.base64EncodedData;
+
     var imageWidth = response.width;
     var imageHeight = response.height;
     var error = response.error;
@@ -149,7 +161,7 @@ function showResult(response) {
     if(error != null) return;
 
     $('#cards').append('<div class="card w-300"><div id="card-' + cardCount +'" style="position: relative"></div><div class="card-body" id="card-body-' + cardCount + '"></div></div>');
-    $('#card-' + cardCount).append('<img class="card-img-top" width="' + imageWidth + '" src="data:' + mediaType + ';base64,' + base64EncodedData + '">');
+    $('#card-' + cardCount).append('<img class="card-img-top" width="' + imageWidth + '" src="data:' + mediaType + ';base64,' + data + '">');
 
     for (var i = 0; i < results.length; i++) {
 
