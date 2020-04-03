@@ -3,6 +3,7 @@ package io.quarkus.tensorflow;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import com.google.protobuf.TextFormat;
+import io.quarkus.cache.CacheResult;
 import object_detection.protos.StringIntLabelMapOuterClass;
 import org.apache.commons.imaging.ImageInfo;
 import org.apache.commons.imaging.ImageReadException;
@@ -26,9 +27,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
 @ApplicationScoped
@@ -39,6 +38,8 @@ public class ObjectDetectionService {
 
     private Session session;
     private String[] labels;
+
+    private Map<String, String> imageData = new HashMap<>();
 
     public ObjectDetectionService() throws IOException, ReflectiveOperationException {
         InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(MODEL_FILE_PATH);
@@ -116,12 +117,14 @@ public class ObjectDetectionService {
         ObjectDetectionResultComplete objectDetectionResultComplete = new ObjectDetectionResultComplete();
         objectDetectionResultComplete.setResults(results);
         objectDetectionResultComplete.setMediaType(mediaType(imageInfo));
-
-        byte[] base64Data = Base64.getEncoder().encode(rawData);
-
-        objectDetectionResultComplete.setData(new String(base64Data));
         objectDetectionResultComplete.setWidth(imageInfo.getWidth());
         objectDetectionResultComplete.setHeight(imageInfo.getHeight());
+
+        // Encode the data and add to the cache with a UUID reference
+        byte[] base64Data = Base64.getEncoder().encode(rawData);
+        String uuid = UUID.randomUUID().toString();
+        imageData.put(uuid, new String(base64Data));
+        objectDetectionResultComplete.setUuid(uuid);
 
         return objectDetectionResultComplete;
     }
@@ -224,6 +227,22 @@ public class ObjectDetectionService {
             }
         }
         return byteData;
+    }
+
+    /**
+     * This is a workaround as SSE chunks are being limited to 8192 bytes. Cannot fit image data into the chunk, so we
+     * instead need to make a callback for it. Opened a feature request to make the chunk size limit configurable:
+     * https://github.com/quarkusio/quarkus/issues/8379
+     * This feature request may not be honored if there is a performance impact on large chunk sizes, and so this
+     * workaround would be reasonable.
+     * @param uuid Reference to the image data in the cache
+     * @return
+     */
+    @CacheResult(cacheName = "image-data")
+    public String getImageData(String uuid){
+        String imageDataVal = imageData.get(uuid);
+        imageData.remove(uuid); // Remove from the Map, as the value will now reside in the cache instead
+        return imageDataVal; // First result will be stored in the cache for the uuid key
     }
 
     /**

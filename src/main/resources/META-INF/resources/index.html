@@ -136,7 +136,7 @@
       }
 
 function showResult(response) {
-    var uuid = response.data;
+    var uuid = response.uuid;
 
     $.get('/object/data?uuid=' + uuid,
       function (data, textStatus, jqXHR) {  // success callback

@@ -63,18 +63,22 @@
       <artifactId>quarkus-resteasy-mutiny</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-cache</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.jboss.resteasy</groupId>
       <artifactId>resteasy-multipart-provider</artifactId>
     </dependency>
     <dependency>
       <groupId>org.tensorflow</groupId>
       <artifactId>tensorflow</artifactId>
-      <version>1.15.0</version>
+      <version>1.13.1</version><!-- TODO: Investigate why TF library is not loading in native mode for 1.15.0 -->
     </dependency>
     <dependency>
       <groupId>org.tensorflow</groupId>
       <artifactId>proto</artifactId>
-      <version>1.15.0</version>
+      <version>1.13.1</version>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>

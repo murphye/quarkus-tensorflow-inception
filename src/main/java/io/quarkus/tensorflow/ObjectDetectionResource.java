@@ -30,15 +30,6 @@ public class ObjectDetectionResource {
     @Inject
     Vertx vertx;
 
-    private Map<String, String> imageData = new HashMap<>();
-
-    @GET
-    @Path("/data")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String getImageData(@QueryParam("uuid") String uuid){
-        return imageData.get(uuid);
-    }
-
     @GET
     @Path("/detect")
     @Produces(MediaType.APPLICATION_JSON)
@@ -50,9 +41,6 @@ public class ObjectDetectionResource {
 
             try {
                 resultComplete = objectDetectionService.detect(url);
-                String uuidRef = UUID.randomUUID().toString();
-                imageData.put(uuidRef, resultComplete.getData());
-                resultComplete.setData(uuidRef);
             }
             catch(Exception e) {
                 e.printStackTrace();
@@ -86,9 +74,6 @@ public class ObjectDetectionResource {
         try {
             InputStream is = inputPart.getBody(InputStream.class, null);
             resultComplete = objectDetectionService.detect(is, threshold);
-            String uuidRef = UUID.randomUUID().toString();
-            imageData.put(uuidRef, resultComplete.getData());
-            resultComplete.setData(uuidRef);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -121,6 +106,13 @@ public class ObjectDetectionResource {
         return eventBus.<String>consumer("result_stream").toMulti().map(b -> {
             return b.body();
         });
+    }
+
+    @GET
+    @Path("/data")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getImageData(@QueryParam("uuid") String uuid){
+        return objectDetectionService.getImageData(uuid); // Will return 204 No Content if cache miss
     }
 
     /**

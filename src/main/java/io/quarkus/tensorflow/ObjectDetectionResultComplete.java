@@ -7,7 +7,7 @@ public class ObjectDetectionResultComplete {
     private String fileName;
     private List<ObjectDetectionResult> results;
     private String mediaType;
-    private String data;
+    private String uuid;
 
     private int width;
     private int height;
@@ -37,12 +37,12 @@ public class ObjectDetectionResultComplete {
         this.mediaType = mediaType;
     }
 
-    public String getData() {
-        return data;
+    public String getUuid() {
+        return uuid;
     }
 
-    public void setData(String data) {
-        this.data = data;
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public int getWidth() {
