@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Quarkus + TensorFlow Object Recognition</title>
+    <title>Quarked Inception</title>
     <link href="/webjars/bootstrap/4.4.1-1/css/bootstrap.min.css" rel="stylesheet">
     <meta name="theme-color" content="#563d7c">
 
@@ -31,42 +31,50 @@
     <header>
         <div class="navbar navbar-dark bg-dark shadow-sm">
             <div class="container d-flex justify-content-between">
-                <a href="#" class="navbar-brand d-flex align-items-center">
-                    <strong>Quarkus + TensorFlow Object Recognition</strong>
-                </a>
+                <span class="navbar-brand d-flex align-items-center">
+                    <strong>
+                        <img src="quarkus.png" height="40" style="margin-right:5px">
+                        +
+                        <img src="tensorflow.png" height="40" style="margin-right:5px">
+                        Quarked Inception
+                    </strong>
+                </span>
+                <span class="my-2 my-lg-0">
+                    <strong>
+                        <a href="https://www.google.com/imghp?as_st=y&tbm=isch&as_q=&as_epq=&as_oq=&as_eq=&cr=&as_sitesearch=&safe=images&tbs=isz:m,itp:photo,ift:png" target="_new">Find PNGs</a>
+                    </strong>
+                </span>
+                <span class="my-2 my-lg-0">
+                    <strong><a href="https://www.openshift.com/learn/topics/ai-ml" target="_new" style="color:silver"><span>&#8680;</span> <span>&#8680;</span> <span>&#8680;</span> Learn about AI/ML on OpenShift!</a></strong>
+                </span>
             </div>
         </div>
     </header>
 
     <main role="main">
 
-        <footer class="text-center" style="padding: 60px; background-color: #242a30">
-            <form class="form-inline justify-content-around">
-                <div class="input-group mb-2">
-                    <input type="file" name="file" id="fileSelect" class="btn btn-primary"/>
-                </div>
-                <div class="mb-2">
-                <span style="color: white; font-size: 10pt">
-                    <span style="font-size: 20pt; color: #007bff">Upload Image File or Submit URL</span><br>
-                    Image must be JPEG (not heavily compressed), PNG, or GIF.
-                </span>
-                </div>
-                <div class="input-group mx-sm-3 mb-2">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Image URL</span>
-                    </div>
-                    <input id="image-url" type="url" class="form-control">
-                    <div class="input-group-append">
-                        <input class="btn btn-primary" type="button" value="Submit" onclick="submitURL()">
-                    </div>
-                </div>
-            </form>
+        <footer class="text-center form-inline justify-content-around" style="padding: 20px; background-color: #242a30">
 
-            <div id="alert" class="alert alert-danger alert-fixed alert-dismissible fade" role="alert">
-                <span>There was an error reading your image. <b>Please try a different one.</b></span>
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+            <div class="input-group mb-2">
+                <form>
+                    <input type="file" name="file" id="fileSelect" class="btn btn-primary"/>
+                </form>
+            </div>
+
+            <div class="mb-2">
+            <span style="color: white; font-size: 10pt">
+                <span style="font-size: 20pt; color: #007bff">Upload Image File or Submit URL</span><br>
+                <a style="color: white; text-decoration: underline" href="https://www.google.com/imghp?as_st=y&tbm=isch&as_q=&as_epq=&as_oq=&as_eq=&cr=&as_sitesearch=&safe=images&tbs=isz:m,itp:photo,ift:png" target="_new">Try PNG format</a>. JPEG and GIF may have unreadable data for some files.
+            </span>
+            </div>
+            <div class="input-group mx-sm-3 mb-2">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Image URL</span>
+                </div>
+                <input id="image-url" type="url" class="form-control">
+                <div class="input-group-append">
+                    <input class="btn btn-primary" type="button" value="Submit" onclick="submitURL()">
+                </div>
             </div>
 
         </footer>
@@ -205,7 +213,8 @@ function displayResult(response, data) {
             $.get('/object/detect?image=' + url,
               function (data, textStatus, jqXHR) {  // success callback
                   if(data.error != null) {
-                      $("#alert").addClass("show");
+                      var alert = '<div id="alert" class="alert alert-danger alert-fixed alert-dismissible fade show" role="alert"><span>There was an error reading your image. <b>Please try a different one.</b></span><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
+                      $("body").append(alert);
                   }
                   else {
                       $('#image-url').val("");
