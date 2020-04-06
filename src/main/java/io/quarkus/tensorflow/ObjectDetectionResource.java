@@ -36,23 +36,22 @@ public class ObjectDetectionResource {
 
             try {
                 resultComplete = objectDetectionService.detect(url);
+                resultComplete.setFileName(url.getFile());
+
+                final JsonObject jsonObject = JsonObject.mapFrom(resultComplete);
+                eventBus.publish("result_stream", jsonObject);
             }
             catch(Exception e) {
                 e.printStackTrace();
                 resultComplete = new ObjectDetectionResultComplete();
-                resultComplete.setError(e.getMessage());
-            }
-            finally {
                 resultComplete.setFileName(url.getFile());
+                resultComplete.setError(e.getMessage());
             }
         }
         catch (MalformedURLException e) {
             resultComplete = new ObjectDetectionResultComplete();
             resultComplete.setError(e.getMessage());
         }
-
-        final JsonObject jsonObject = JsonObject.mapFrom(resultComplete);
-        eventBus.publish("result_stream", jsonObject.encode());
 
         return resultComplete;
     }
@@ -69,18 +68,17 @@ public class ObjectDetectionResource {
         try {
             InputStream is = inputPart.getBody(InputStream.class, null);
             resultComplete = objectDetectionService.detect(is, threshold);
+            resultComplete.setFileName(fileName);
+
+            final JsonObject jsonObject = JsonObject.mapFrom(resultComplete);
+            eventBus.publish("result_stream", jsonObject);
         }
         catch (Exception e) {
             e.printStackTrace();
             resultComplete = new ObjectDetectionResultComplete();
+            resultComplete.setFileName(fileName);
             resultComplete.setError("Error reading image data. Please try another file.");
         }
-        finally {
-            resultComplete.setFileName(fileName);
-        }
-
-        final JsonObject jsonObject = JsonObject.mapFrom(resultComplete);
-        eventBus.publish("result_stream", jsonObject.encode());
 
         return resultComplete;
     }
@@ -96,11 +94,9 @@ public class ObjectDetectionResource {
     @Path("/stream")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @SseElementType(MediaType.APPLICATION_JSON)
-    public Multi<String> stream()
+    public Multi<JsonObject> stream()
     {
-        return eventBus.<String>consumer("result_stream").toMulti().map(b -> {
-            return b.body();
-        });
+        return eventBus.<JsonObject>consumer("result_stream").toMulti().map(b -> b.body());
     }
 
     @GET
