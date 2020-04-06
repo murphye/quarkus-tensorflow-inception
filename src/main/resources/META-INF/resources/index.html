@@ -127,7 +127,16 @@
 
         // Http Request
         var request = new XMLHttpRequest();
-        request.responseType = "json";
+        request.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(request.responseText);
+
+            if(data.error != null) {
+              var alert = '<div id="alert" class="alert alert-danger alert-fixed alert-dismissible fade show" role="alert"><span>There was an error reading your image. <b>Please try a different one.</b></span><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
+              $("body").append(alert);
+            }
+          }
+        };
 
         request.open('POST', "http://localhost:8080/object/detect/" + 65);
         request.setRequestHeader("Accept", "application/json,text/plain");

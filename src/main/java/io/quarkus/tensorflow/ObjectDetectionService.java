@@ -60,17 +60,17 @@ public class ObjectDetectionService {
         return labels;
     }
 
-    public ObjectDetectionResultComplete detect(URL url) throws Exception {
+    public ObjectDetectionResultComplete detect(URL url) throws IOException, URISyntaxException, ImageReadException, MediaTypeException {
         byte[] rawData = downloadFile(url);
         return detect(rawData, 75);
     }
 
-    public ObjectDetectionResultComplete detect(InputStream inputStream, int threshold) throws Exception {
+    public ObjectDetectionResultComplete detect(InputStream inputStream, int threshold) throws IOException, URISyntaxException, ImageReadException, MediaTypeException {
         byte[] rawData = ByteStreams.toByteArray(inputStream);
         return detect(rawData, threshold);
     }
 
-    public ObjectDetectionResultComplete detect(byte[] rawData, int threshold) throws Exception {
+    public ObjectDetectionResultComplete detect(byte[] rawData, int threshold) throws IOException, ImageReadException, URISyntaxException, MediaTypeException {
         // Get metadata about the image from the raw bytes
         ImageInfo imageInfo = Imaging.getImageInfo(rawData);
 
@@ -142,18 +142,17 @@ public class ObjectDetectionService {
         return result;
     }
 
-    private static String mediaType(ImageInfo imageInfo) throws Exception {
+    private static String mediaType(ImageInfo imageInfo) throws MediaTypeException {
         String extension = imageInfo.getFormat().getExtension();
         switch(extension) {
             case "GIF":
                 return "image/gif";
             case "JPEG":
-                // code block
                 return "image/jpg";
             case "PNG":
                 return "image/png";
             default:
-                throw new Exception(extension + " format type is unsupported for the MediaType!");
+                throw new MediaTypeException(extension + " format type is unsupported for the MediaType!");
         }
     }
 

@@ -1,8 +1,11 @@
 package io.quarkus.tensorflow;
 
 import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonObject;
+import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.eventbus.EventBus;
+import org.apache.commons.imaging.ImageReadException;
 import org.jboss.resteasy.annotations.SseElementType;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
@@ -13,6 +16,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.*;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
@@ -36,16 +40,20 @@ public class ObjectDetectionResource {
 
             try {
                 resultComplete = objectDetectionService.detect(url);
-                resultComplete.setFileName(url.getFile());
 
                 final JsonObject jsonObject = JsonObject.mapFrom(resultComplete);
                 eventBus.publish("result_stream", jsonObject);
             }
-            catch(Exception e) {
-                e.printStackTrace();
+            catch(IOException | ImageReadException | MediaTypeException e) {
                 resultComplete = new ObjectDetectionResultComplete();
-                resultComplete.setFileName(url.getFile());
+                resultComplete.setError("Error reading image data. Please try another file.");
+            }
+            catch(Exception e) {
+                resultComplete = new ObjectDetectionResultComplete();
                 resultComplete.setError(e.getMessage());
+            }
+            finally {
+                resultComplete.setFileName(url.getFile());
             }
         }
         catch (MalformedURLException e) {
@@ -56,30 +64,31 @@ public class ObjectDetectionResource {
         return resultComplete;
     }
 
+    @Inject
+    Vertx vertx;
+
     @POST
     @Path("/detect/{threshold}")
     @Consumes("multipart/form-data")
     @Produces("application/json")
     public ObjectDetectionResultComplete loadImage(@HeaderParam("Content-Length") String contentLength, @PathParam("threshold") int threshold, MultipartFormDataInput input) {
-        InputPart inputPart = input.getFormDataMap().get("file").iterator().next();
-        String fileName = parseFileName(inputPart.getHeaders());
-        ObjectDetectionResultComplete resultComplete = null;
+        final InputPart inputPart = input.getFormDataMap().get("file").iterator().next();
+        final String fileName = parseFileName(inputPart.getHeaders());
 
+        ObjectDetectionResultComplete resultComplete = null;
         try {
             InputStream is = inputPart.getBody(InputStream.class, null);
-            resultComplete = objectDetectionService.detect(is, threshold);
+            resultComplete = objectDetectionService.detect(is, threshold); // Very slow call on first request
             resultComplete.setFileName(fileName);
 
             final JsonObject jsonObject = JsonObject.mapFrom(resultComplete);
             eventBus.publish("result_stream", jsonObject);
         }
-        catch (Exception e) {
-            e.printStackTrace();
+        catch (IOException | ImageReadException | MediaTypeException | URISyntaxException e) {
             resultComplete = new ObjectDetectionResultComplete();
             resultComplete.setFileName(fileName);
             resultComplete.setError("Error reading image data. Please try another file.");
         }
-
         return resultComplete;
     }
 
