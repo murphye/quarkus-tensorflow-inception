@@ -28,6 +28,13 @@
 </head>
 <body class="d-flex flex-column h-100">
 
+    <div style="position: absolute; top: 80px; left: 0px; z-index: 0; font-size: 8pt; margin-bottom: 100px ">
+        <b style="color: #007bff; margin-left: 18px; line-height: 20px">Find JPEGs</b>
+        <ul id="labels-list" style="list-style-type: none; padding-inline-start: 18px; ">
+        </ul>
+
+    </div>
+
     <header>
         <div class="navbar navbar-dark bg-dark shadow-sm">
             <div class="container d-flex justify-content-between">
@@ -37,11 +44,6 @@
                         +
                         <img src="quarkus.png" height="40" style="margin-left: 5px; margin-right:10px">
                         TensorQuark
-                    </strong>
-                </span>
-                <span class="my-2 my-lg-0">
-                    <strong>
-                        <a href="https://www.google.com/imghp?as_st=y&tbm=isch&as_q=&as_epq=&as_oq=&as_eq=&cr=&as_sitesearch=&safe=active&tbs=isz:lt,islt:4mp,itp:photo,ift:jpg" target="_new">Find JPEGs</a>
                     </strong>
                 </span>
                 <span class="my-2 my-lg-0">
@@ -67,16 +69,6 @@
                 <a style="color: white; text-decoration: underline" href="https://www.google.com/imghp?as_st=y&tbm=isch&as_q=&as_epq=&as_oq=&as_eq=&cr=&as_sitesearch=&safe=active&tbs=isz:lt,islt:4mp,itp:photo,ift:jpg" target="_new">Try JPEG format</a> of high quality. Compression reduces readability.
             </span>
             </div>
-            <div class="input-group mx-sm-3 mb-2">
-                <div class="input-group-prepend">
-                    <span class="input-group-text">Image URL</span>
-                </div>
-                <input id="image-url" type="url" class="form-control">
-                <div class="input-group-append">
-                    <input class="btn btn-primary" type="button" value="Submit" onclick="submitURL()">
-                </div>
-            </div>
-
         </footer>
 
         <div class="album py-5 bg-light">
@@ -102,6 +94,16 @@
             data = JSON.parse(event.data);
             showResult(data);
         };
+
+        $.get('/object/labels',
+          function (data, textStatus, jqXHR) {  // success callback
+            var labelList = $('#labels-list');
+
+            for(var i in data) {
+              var label = data[i];
+              labelList.append('<li><a href="https://unsplash.com/s/photos/' + label + '" target="_new" style="color:gray">' + label + '</a></li>');
+            }
+        });
     }
     else {
         window.alert("EventSource not available on this browser.")
@@ -216,36 +218,6 @@ function displayResult(response, data) {
       readURL(this);
     });
 
-    function submitURL() {
-        var url =$('#image-url').val();
-        if(isURL(url)) {
-            $.get('/object/detect?image=' + encodeURI(url),
-              function (data, textStatus, jqXHR) {  // success callback
-                  if(data.error != null) {
-                      var alert = '<div id="alert" class="alert alert-danger alert-fixed alert-dismissible fade show" role="alert"><span>There was an error reading your image. <b>Please try a different one.</b></span><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
-                      $("body").append(alert);
-                  }
-                  else {
-                      $('#image-url').val("");
-                  }
-            });
-        }
-        else {
-            alert("Not a valid URL!");
-        }
-    }
-
-    function isURL(string) {
-      var url;
-
-      try {
-        url = new URL(string);
-      } catch (err) {
-        return false;
-      }
-
-      return url.protocol === "http:" || url.protocol === "https:";
-    }
   </script>
 
 </body>

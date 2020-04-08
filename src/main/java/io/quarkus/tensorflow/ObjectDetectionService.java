@@ -18,7 +18,6 @@ import org.tensorflow.types.UInt8;
 import javax.enterprise.context.ApplicationScoped;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,7 +27,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.zip.GZIPOutputStream;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class ObjectDetectionService {
@@ -56,8 +55,12 @@ public class ObjectDetectionService {
         this.session = new Session(graph);
     }
 
-    public String[] getLabels() {
-        return labels;
+    @CacheResult(cacheName = "labels")
+    public List<String> getLabels() {
+        List<String> labelsList = Arrays.asList(labels);
+        labelsList = labelsList.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        Collections.sort(labelsList);
+        return labelsList;
     }
 
     public ObjectDetectionResultComplete detect(InputStream inputStream, int threshold) throws IOException, URISyntaxException, ImageReadException, MediaTypeException {
@@ -124,19 +127,6 @@ public class ObjectDetectionService {
         return objectDetectionResultComplete;
     }
 
-    private static byte[] gzipCompress(byte[] uncompressedData) {
-        byte[] result = new byte[]{};
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(uncompressedData.length);
-             GZIPOutputStream gzipOS = new GZIPOutputStream(bos)) {
-            gzipOS.write(uncompressedData);
-            gzipOS.close();
-            result = bos.toByteArray();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
-
     private static String mediaType(ImageInfo imageInfo) throws MediaTypeException {
         String extension = imageInfo.getFormat().getExtension();
         switch(extension) {
@@ -165,7 +155,6 @@ public class ObjectDetectionService {
         }
         String[] ret = new String[maxId];
         for (StringIntLabelMapOuterClass.StringIntLabelMapItem item : proto.getItemList()) {
-            System.out.println("Label: " + item.getDisplayName());
             ret[item.getId()-1] = item.getDisplayName();
         }
         return ret;

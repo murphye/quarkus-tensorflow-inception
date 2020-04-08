@@ -1,8 +1,8 @@
 package io.quarkus.tensorflow;
 
+import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Multi;
 import io.vertx.core.json.JsonObject;
-import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import org.apache.commons.imaging.ImageReadException;
 import org.jboss.resteasy.annotations.SseElementType;
@@ -16,6 +16,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Path("/object")
 public class ObjectDetectionResource {
@@ -53,9 +54,9 @@ public class ObjectDetectionResource {
 
     @GET
     @Path("/labels")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     public List<String> labels(@QueryParam("image") String imageURL) {
-        return Arrays.asList(objectDetectionService.getLabels());
+        return objectDetectionService.getLabels();
     }
 
     @GET
