@@ -60,11 +60,6 @@ public class ObjectDetectionService {
         return labels;
     }
 
-    public ObjectDetectionResultComplete detect(URL url) throws IOException, URISyntaxException, ImageReadException, MediaTypeException {
-        byte[] rawData = downloadFile(url);
-        return detect(rawData, 75);
-    }
-
     public ObjectDetectionResultComplete detect(InputStream inputStream, int threshold) throws IOException, URISyntaxException, ImageReadException, MediaTypeException {
         byte[] rawData = ByteStreams.toByteArray(inputStream);
         return detect(rawData, threshold);
@@ -102,7 +97,7 @@ public class ObjectDetectionService {
                 continue;
             }
 
-            String label = labels[(int) classes[object]];
+            String label = labels[(int) classes[object] - 1];
             float score = scores[object];
 
             float y1 = boxes[object][0];
@@ -162,15 +157,16 @@ public class ObjectDetectionService {
         StringIntLabelMapOuterClass.StringIntLabelMap.Builder builder = StringIntLabelMapOuterClass.StringIntLabelMap.newBuilder();
         TextFormat.merge(text, builder);
         StringIntLabelMapOuterClass.StringIntLabelMap proto = builder.build();
-        int maxId = 0;
+        int maxId = 1;
         for (StringIntLabelMapOuterClass.StringIntLabelMapItem item : proto.getItemList()) {
             if (item.getId() > maxId) {
                 maxId = item.getId();
             }
         }
-        String[] ret = new String[maxId + 1];
+        String[] ret = new String[maxId];
         for (StringIntLabelMapOuterClass.StringIntLabelMapItem item : proto.getItemList()) {
-            ret[item.getId()] = item.getDisplayName();
+            System.out.println("Label: " + item.getDisplayName());
+            ret[item.getId()-1] = item.getDisplayName();
         }
         return ret;
     }
