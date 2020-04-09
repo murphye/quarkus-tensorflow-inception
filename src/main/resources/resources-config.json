@@ -7,10 +7,10 @@
             "pattern": ".*\\.pb$"
         },
         {
-            "pattern": ".*\\.dylib$"
+            "pattern": ".*\\.dylib*$"
         },
         {
-            "pattern": ".*\\.so$"
+            "pattern": ".*\\.so*$"
         }
     ]
 }

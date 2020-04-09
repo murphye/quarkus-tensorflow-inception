@@ -21,12 +21,10 @@ import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Method;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -40,7 +38,7 @@ public class ObjectDetectionService {
 
     private Map<String, String> imageData = new HashMap<>();
 
-    public ObjectDetectionService() throws IOException, ReflectiveOperationException {
+    public ObjectDetectionService() throws IOException, ReflectiveOperationException, URISyntaxException {
         InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(MODEL_FILE_PATH);
 
         byte[] modelBytes = ByteStreams.toByteArray(is);
@@ -49,7 +47,8 @@ public class ObjectDetectionService {
         SavedModel savedModel = SavedModel.parseFrom(modelBytes);
         GraphDef graphDef = savedModel.getMetaGraphsList().get(0).getGraphDef();
 
-        forceInitTensorFlow();
+        LoadTensorFlow.load();
+
         Graph graph = new Graph();
         graph.importGraphDef(graphDef.toByteArray());
         this.session = new Session(graph);
@@ -177,22 +176,6 @@ public class ObjectDetectionService {
     }
 
     /**
-     * Download a file from a URL and return the data as a byte[].
-     * @param url The URL here the file exists.
-     * @return byte[] representing the data in the file.
-     * @throws IOException
-     */
-    private static byte[] downloadFile(URL url) throws IOException {
-        URLConnection conn = url.openConnection();
-        conn.setConnectTimeout(5000);
-        conn.setReadTimeout(5000);
-        conn.connect();
-
-        InputStream is = conn.getInputStream();
-        return ByteStreams.toByteArray(is);
-    }
-
-    /**
      * Convert an array of RBG values as byte[3] representing the RGB values.
      * @param rgbs Array of RGB values representing an image
      * @return Converted RGB values as bytes
@@ -227,20 +210,5 @@ public class ObjectDetectionService {
         String imageDataVal = imageData.get(uuid);
         imageData.remove(uuid); // Remove from the Map, as the value will now reside in the cache instead
         return imageDataVal; // First result will be stored in the cache for the uuid key
-    }
-
-    /**
-     * This is a GraalVM workaround for static blocks not being executed at runtime in SubstrateVM. Since TensorFlow uses
-     * static blocks to initialize, and the init API is not public, this method offers a new way to access TensorFlow.init.
-     * The alternative is to use --initialize-at-run-time=org.tensorflow.Graph but this takes away compile time benefits
-     * and also prevents initialization of TensorFlow objects inside a constructor.
-     * @link https://medium.com/graalvm/understanding-class-initialization-in-graalvm-native-image-generation-d765b7e4d6ed
-     * @see org.tensorflow.TensorFlow
-     * @see org.tensorflow.Graph
-     */
-    private void forceInitTensorFlow() throws ReflectiveOperationException {
-        Method tfInit = Class.forName("org.tensorflow.TensorFlow").getDeclaredMethod("init");
-        tfInit.setAccessible(true);
-        tfInit.invoke(null);
     }
 }
