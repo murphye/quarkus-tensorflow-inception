@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>TensorQuark</title>
+    <title>Tensors &amp; Quarks Demo</title>
     <link href="/webjars/bootstrap/4.4.1-1/css/bootstrap.min.css" rel="stylesheet">
     <meta name="theme-color" content="#563d7c">
 
@@ -28,9 +28,9 @@
 </head>
 <body class="d-flex flex-column h-100">
 
-    <div style="position: absolute; top: 80px; left: 0px; z-index: 0; font-size: 8pt; margin-bottom: 100px ">
-        <b style="color: #007bff; margin-left: 18px; line-height: 20px">Find JPEGs</b>
-        <ul id="labels-list" style="list-style-type: none; padding-inline-start: 18px; ">
+    <div style="position: absolute; top: 80px; left: 0px; z-index: 0; font-size: 9pt; padding-bottom: 100px ">
+        <b style="color: #007bff; margin-left: 15px; line-height: 25px">Samples Images</b>
+        <ul id="labels-list" style="list-style-type: none; padding-inline-start: 25px; ">
         </ul>
 
     </div>
@@ -41,13 +41,16 @@
                 <span class="navbar-brand d-flex align-items-center">
                     <strong>
                         <img src="tensorflow.png" height="40" style="margin-right:0px">
-                        +
+
                         <img src="quarkus.png" height="40" style="margin-left: 5px; margin-right:10px">
-                        TensorQuark
+                        Tensors &amp; Quarks &mdash; Object Recognition Demo
                     </strong>
                 </span>
-                <span class="my-2 my-lg-0">
-                    <strong><a href="https://www.openshift.com/learn/topics/ai-ml" target="_new" style="color:silver"><span>&#8680;</span> <span>&#8680;</span> <span>&#8680;</span> Learn about AI/ML on OpenShift!</a></strong>
+                <span class="my-2 my-lg-0" style="color:silver">
+                    <strong>AI/ML on OpenShift! &nbsp;&nbsp;&nbsp; <a href="https://www.openshift.com/learn/topics/ai-ml" target="_learn">Learn</a> |
+                    <a href="https://learn.openshift.com/ai-machine-learning/" target="_try">Try</a> |
+                    <a href="https://www.redhat.com/cms/managed-files/co-services-open-ai-platform-datasheet-f21162pr-202002-en.pdf" target="_accel">Accelerate</a>
+                    </strong>
                 </span>
             </div>
         </div>
@@ -57,18 +60,19 @@
 
         <footer class="text-center form-inline justify-content-around" style="padding: 20px; background-color: #242a30">
 
+            <div class="alert alert-info alert-dismissible fade show" role="alert" style="margin: -10px 0 0 0">
+                <strong>Not All Images Work!</strong> Use the links to the left to download sample images to try.
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
             <div class="input-group mb-2">
                 <form>
                     <input type="file" name="file" id="fileSelect" class="btn btn-primary"/>
                 </form>
             </div>
 
-            <div class="mb-2">
-            <span style="color: white; font-size: 10pt">
-                <span style="font-size: 20pt; color: #007bff">Upload Image File or Submit URL</span><br>
-                <a style="color: white; text-decoration: underline" href="https://www.google.com/imghp?as_st=y&tbm=isch&as_q=&as_epq=&as_oq=&as_eq=&cr=&as_sitesearch=&safe=active&tbs=isz:lt,islt:4mp,itp:photo,ift:jpg" target="_new">Try JPEG format</a> of high quality. Compression reduces readability.
-            </span>
-            </div>
         </footer>
 
         <div class="album py-5 bg-light">

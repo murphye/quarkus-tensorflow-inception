@@ -1,6 +1,5 @@
 package io.quarkus.tensorflow;
 
-import io.quarkus.cache.CacheResult;
 import io.smallrye.mutiny.Multi;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -16,7 +15,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Path("/object")
 public class ObjectDetectionResource {
