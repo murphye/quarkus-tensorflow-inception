@@ -6,24 +6,6 @@
     <title>Tensors &amp; Quarks Demo</title>
     <link href="/webjars/bootstrap/4.4.1-1/css/bootstrap.min.css" rel="stylesheet">
     <meta name="theme-color" content="#563d7c">
-
-    <style>
-      .bd-placeholder-img {
-        font-size: 1.125rem;
-        text-anchor: middle;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-      }
-
-      @media (min-width: 768px) {
-        .bd-placeholder-img-lg {
-          font-size: 3.5rem;
-        }
-      }
-    </style>
-    <!-- Custom styles for this template -->
     <link href="album.css" rel="stylesheet">
 </head>
 <body class="d-flex flex-column h-100">
@@ -32,7 +14,6 @@
         <b style="color: #007bff; margin-left: 15px; line-height: 25px">Samples Images</b>
         <ul id="labels-list" style="list-style-type: none; padding-inline-start: 25px; ">
         </ul>
-
     </div>
 
     <header>
@@ -84,145 +65,9 @@
 
     </main>
 
-<script src="/webjars/jquery/3.4.1/jquery.min.js"></script>
-<script src="/webjars/bootstrap/4.4.1-1/js/bootstrap.min.js"></script>
-
-
-<script type="text/javascript">
-
-    var cardCount  = 0;
-
-    if (!!window.EventSource) {
-        var eventSource = new EventSource("/object/stream");
-        eventSource.onmessage = function (event) {
-            data = JSON.parse(event.data);
-            showResult(data);
-        };
-
-        $.get('/object/labels',
-          function (data, textStatus, jqXHR) {  // success callback
-            var labelList = $('#labels-list');
-
-            for(var i in data) {
-              var label = data[i];
-              labelList.append('<li><a href="https://unsplash.com/s/photos/' + label + '" target="_new" style="color:gray">' + label + '</a></li>');
-            }
-        });
-    }
-    else {
-        window.alert("EventSource not available on this browser.")
-    }
-
-
-    function highlightBB(cardCount, bbCount) {
-        $('#bb-' + cardCount + '-' + bbCount).css('border','2px solid red');
-    }
-
-    function resetBB(cardCount, bbCount) {
-        $('#bb-' + cardCount + '-' + bbCount).css('border','2px solid #007bff');
-    }
-
-      function doSubmit(){
-        var formData = new FormData();
-
-        var fileSelect = document.getElementById("fileSelect");
-        if(fileSelect.files && fileSelect.files.length == 1){
-         var file = fileSelect.files[0]
-         formData.set("file", file , file.name);
-        }
-
-        // Http Request
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-          if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(request.responseText);
-
-            if(data.error != null) {
-              var alert = '<div id="alert" class="alert alert-danger alert-fixed alert-dismissible fade show" role="alert"><span>There was an error reading your image. <b>Please try a different one.</b></span><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
-              $("body").append(alert);
-            }
-          }
-        };
-
-        request.open('POST', "http://localhost:8080/object/detect/" + 65);
-        request.setRequestHeader("Accept", "application/json,text/plain");
-        request.send(formData);
-      }
-
-function showResult(response) {
-    var uuid = response.uuid;
-
-    $.get('/object/data?uuid=' + uuid,
-      function (data, textStatus, jqXHR) {  // success callback
-          if(data.error != null) {
-              $("#alert").addClass("show");
-          }
-          else {
-              displayResult(response, data);
-          }
-    });
-}
-
-function displayResult(response, data) {
-    var html = '';
-    var results = response.results;
-    var mediaType = response.mediaType;
-
-    var imageWidth = response.width;
-    var imageHeight = response.height;
-    var error = response.error;
-
-    if(error != null) return;
-
-    $('#cards').prepend('<div class="card w-300"><div id="card-' + cardCount +'" style="position: relative"></div><div class="card-body" id="card-body-' + cardCount + '"></div></div>');
-    $('#card-' + cardCount).append('<img class="card-img-top" width="' + imageWidth + '" src="data:' + mediaType + ';base64,' + data + '">');
-
-    for (var i = 0; i < results.length; i++) {
-
-       var label = results[i].label;
-       var score = results[i].score;
-       var badgeType = 'primary';
-       if(score < 0) {
-         badgeType = 'danger';
-         score = label;
-         label = 'error';
-       }
-       else {
-         score = parseFloat(results[i].score * 100).toFixed(2);
-       }
-
-       html += '<span class="badge badge-pill badge-' + badgeType + '" data-toggle="tooltip" data-placement="right" title="' + score + '% Confident" onmouseover="highlightBB(' + cardCount + ',' + i + ')" onmouseout="resetBB(' + cardCount + ',' + i + ')">' + label + '</span> ';
-
-       var x1 = parseFloat(results[i].x1 * 100).toFixed(2);
-       var y1 = parseFloat(results[i].y1 * 100).toFixed(2);
-       var x2 = parseFloat(results[i].x2 * 100).toFixed(2);
-       var y2 = parseFloat(results[i].y2 * 100).toFixed(2);
-
-       boundingWidth = x2 - x1;
-       boundingHeight = y2 - y1;
-
-       $('#card-' + cardCount).append('<div id="bb-' + cardCount + '-' + i + '" style="position: absolute; top: ' + y1 + '%; left: ' + x1 + '%; width: ' + boundingWidth + '%; height: ' + boundingHeight + '%; border: 2px solid #007bff"></div>');
-    }
-
-    $('#card-body-' + cardCount).html(html);
-    cardCount++;
-}
-
-    function readURL(input) {
-      if (input.files && input.files[0]) {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-
-        }
-        reader.readAsDataURL(input.files[0]);
-        doSubmit();
-      }
-    }
-    $("#fileSelect").on('change', function(){
-      readURL(this);
-    });
-
-  </script>
+    <script src="/webjars/jquery/3.4.1/jquery.min.js"></script>
+    <script src="/webjars/bootstrap/4.4.1-1/js/bootstrap.min.js"></script>
+    <script src="index.js"></script>
 
 </body>
 </html>
