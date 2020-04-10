@@ -70,17 +70,23 @@ public class LoadTensorFlow {
     }
 
     private static Path copy(Path tmpPath, String path, String fileName) throws IOException {
-        InputStream inputStream = TensorFlow.class.getClassLoader().getResourceAsStream(path + fileName);
-        Path filePath = tmpPath.resolve(fileName);
-        Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-        inputStream.close();
-        return filePath;
+        try {
+            InputStream inputStream = TensorFlow.class.getClassLoader().getResourceAsStream(path + fileName);
+            Path filePath = tmpPath.resolve(fileName);
+            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            inputStream.close();
+            return filePath;
+        }
+        catch (Exception e) {
+            LOG.severe("Error copying " + path + fileName + " to " + tmpPath.toFile().getAbsolutePath());
+            throw e;
+        }
     }
 
     private static boolean isLoaded() {
         try {
             TensorFlow.version();
-            LOG.info("TensorFlow is already loaded");
+            LOG.fine("TensorFlow is already loaded");
             return true;
         } catch (UnsatisfiedLinkError e) {
             return false;
@@ -90,7 +96,7 @@ public class LoadTensorFlow {
     private static boolean tryLoadLibrary() {
         try {
             System.loadLibrary(JNI_LIBNAME);
-            LOG.info("TensorFlow loaded from libary: " + JNI_LIBNAME);
+            LOG.fine("TensorFlow loaded from libary: " + JNI_LIBNAME);
             return true;
         } catch (UnsatisfiedLinkError e) {
             return false;

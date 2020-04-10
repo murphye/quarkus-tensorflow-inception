@@ -24,7 +24,6 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
