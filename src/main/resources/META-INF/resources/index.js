@@ -50,7 +50,7 @@ function doSubmit() {
         }
     };
 
-    request.open('POST', "http://localhost:8080/object/detect/" + 65);
+    request.open('POST', "/object/detect/" + 65);
     request.setRequestHeader("Accept", "application/json,text/plain");
     request.send(formData);
 }
