@@ -28,3 +28,10 @@ Or you can use Docker to build the native executable using: `mvn package -Pnativ
 You can then execute your binary: `./target/quarkus-tensorflow-inception-1.0.0-SNAPSHOT-runner`
 
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/building-native-image-guide .
+
+## Deploy to OpenShift with Binary Build (on Linux only)
+
+```cat src/main/docker/Dockerfile.native.binary-build | oc new-build --name tensorquark --dockerfile='-'
+oc start-build bc/tensorquark --from-file target/quarkus-tensorflow-inception-1.0.0-SNAPSHOT-runner --follow
+oc expose svc/tensorquark
+oc get route tensorquark```
