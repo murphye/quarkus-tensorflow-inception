@@ -1,3 +1,6 @@
+## Note: Please Install Git LFS Plugin in order to correctly pull down this respository!
+https://git-lfs.github.com/
+
 # Quarkus TensorFlow Inception Project
 
 This project shows how you can combine TensorFlow and Quarkus together into one executable using GraalVM native image, 
