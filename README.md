@@ -42,11 +42,3 @@ oc start-build bc/tensorquark --from-file target/quarkus-tensorflow-inception-1.
 oc expose svc/tensorquark
 oc get route tensorquark
 ```
-## Deploy JVM Uber JAR to OpenShift with binary build and Dockerfile
-
-```
- oc new-build --name=tensorquark registry.redhat.io/openjdk/openjdk-11-rhel7 --binary=true
-
-oc new-build --name=tensorquark openjdk --binary=true
-oc start-build bc/tensorquark --from-file target/quarkus-tensorflow-inception-1.0.0-SNAPSHOT-runner.jar --follow
-```
