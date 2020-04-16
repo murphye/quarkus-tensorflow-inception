@@ -34,6 +34,13 @@ function doSubmit() {
     var fileSelect = document.getElementById("fileSelect");
     if (fileSelect.files && fileSelect.files.length == 1) {
         var file = fileSelect.files[0]
+
+        // Demo safeguard
+        if(file.name.indexOf("unsplash") == -1) {
+            alert("Warning: Please upload a picture only from the provided links.");
+            return;
+        }
+
         formData.set("file", file, file.name);
     }
 
@@ -78,6 +85,9 @@ function displayResult(response, data) {
     var error = response.error;
 
     if (error != null) return;
+
+    // Demo Safeguard: Do not show images without any detected objects
+    if(results.length == 0) return;
 
     $('#cards').prepend('<div class="card w-300"><div id="card-' + cardCount + '" style="position: relative"></div><div class="card-body" id="card-body-' + cardCount + '"></div></div>');
     $('#card-' + cardCount).append('<img class="card-img-top" width="' + imageWidth + '" src="data:' + mediaType + ';base64,' + data + '">');
