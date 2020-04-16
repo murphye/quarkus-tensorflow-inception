@@ -29,11 +29,24 @@ You can then execute your binary: `./target/quarkus-tensorflow-inception-1.0.0-S
 
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/building-native-image-guide .
 
-## Deploy to OpenShift with Binary Build (on Linux only)
+## Deploy native executable to OpenShift with binary build and Dockerfile
+
+You can combine a custom Dockerfile with the OpenShift binary build process to create your own custom deployment of
+a Quarkus application. This avoids the full S2I build process, but you have to build the Linux native image executable yourself!
+
+This may also be useful to leverage in a build pipeline that checks out the code and builds it internally before deployment to OpenShift.
 
 ```
 cat src/main/docker/Dockerfile.native.binary-build | oc new-build --name tensorquark --dockerfile='-'
 oc start-build bc/tensorquark --from-file target/quarkus-tensorflow-inception-1.0.0-SNAPSHOT-runner --follow
 oc expose svc/tensorquark
 oc get route tensorquark
+```
+## Deploy JVM Uber JAR to OpenShift with binary build and Dockerfile
+
+```
+ oc new-build --name=tensorquark registry.redhat.io/openjdk/openjdk-11-rhel7 --binary=true
+
+oc new-build --name=tensorquark openjdk --binary=true
+oc start-build bc/tensorquark --from-file target/quarkus-tensorflow-inception-1.0.0-SNAPSHOT-runner.jar --follow
 ```
